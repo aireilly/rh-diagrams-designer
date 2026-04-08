@@ -1,0 +1,62 @@
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: #d0d0d0;
+  margin: 0 8px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-btn {
+  padding: 6px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Red Hat Text', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #262626;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #0066cc;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.toolbar-btn.active {
+  background: #d9e8f7;
+  border-color: #0066cc;
+}
+
+.toolbar-btn-primary {
+  background: #0066cc;
+  color: #ffffff;
+  border-color: #0066cc;
+}
+
+.toolbar-btn-primary:hover:not(:disabled) {
+  background: #004d99;
+}
+
+.toolbar-zoom-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #262626;
+  min-width: 40px;
+  text-align: center;
+}
