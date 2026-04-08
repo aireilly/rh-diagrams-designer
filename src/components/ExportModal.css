@@ -1,0 +1,106 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin-bottom: 16px;
+}
+
+.modal-field {
+  margin-bottom: 12px;
+}
+
+.modal-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #595959;
+  margin-bottom: 4px;
+}
+
+.modal-field input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-family: 'Red Hat Text', sans-serif;
+  font-size: 14px;
+}
+
+.modal-field input:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.modal-filename {
+  font-size: 13px;
+  color: #262626;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 6px 8px;
+  border-radius: 4px;
+  display: block;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.modal-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #0066cc;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: 'Red Hat Text', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.modal-btn:hover {
+  background: #004d99;
+}
+
+.modal-btn-secondary {
+  background: #e5e5e5;
+  color: #262626;
+}
+
+.modal-btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+.modal-btn-cancel {
+  background: transparent;
+  color: #595959;
+  border: 1px solid #d0d0d0;
+}
+
+.modal-btn-cancel:hover {
+  background: #f5f5f5;
+}
