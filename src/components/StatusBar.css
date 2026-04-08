@@ -1,0 +1,21 @@
+.status-item {
+  margin-right: 16px;
+}
+
+.status-snap-btn {
+  padding: 2px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Red Hat Text', sans-serif;
+  font-size: 11px;
+  color: #595959;
+  margin-right: 16px;
+}
+
+.status-snap-btn.active {
+  background: #d9e8f7;
+  border-color: #0066cc;
+  color: #0066cc;
+}
