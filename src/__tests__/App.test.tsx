@@ -6,7 +6,6 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByText('Toolbar')).toBeInTheDocument();
     expect(screen.getByText('Components')).toBeInTheDocument();
-    expect(screen.getByText('Canvas')).toBeInTheDocument();
     expect(screen.getByText('Properties')).toBeInTheDocument();
     expect(screen.getByText('Status')).toBeInTheDocument();
   });

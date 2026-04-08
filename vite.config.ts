@@ -7,5 +7,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
+    alias: {
+      'konva': '/home/aireilly/rh-diagrams-designer/src/__mocks__/konva.ts',
+      'react-konva': '/home/aireilly/rh-diagrams-designer/src/__mocks__/react-konva.tsx',
+    },
   },
 });

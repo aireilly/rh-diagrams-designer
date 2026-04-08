@@ -1,0 +1,14 @@
+.canvas-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: #f0f0f0;
+  padding: 20px;
+}
+
+.diagram-stage {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
