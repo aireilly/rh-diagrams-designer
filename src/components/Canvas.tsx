@@ -1,8 +1,13 @@
-import { useRef, useCallback } from 'react';
-import { Stage, Layer, Line, Rect } from 'react-konva';
+import { useRef, useCallback, useEffect } from 'react';
+import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
 import { CANVAS, GRID, COLORS } from '../constants';
+import RectShape from '../shapes/RectShape';
+import CircleCallout from '../shapes/CircleCallout';
+import TextLabel from '../shapes/TextLabel';
+import IconShape from '../shapes/IconShape';
+import ConnectorLine from '../shapes/ConnectorLine';
 import './Canvas.css';
 
 function GridLines({ width, height }: { width: number; height: number }) {
@@ -37,9 +42,18 @@ function GridLines({ width, height }: { width: number; height: number }) {
   return <>{lines}</>;
 }
 
-export default function Canvas() {
-  const { state, setSelection } = useDiagram();
-  const stageRef = useRef<Konva.Stage>(null);
+interface CanvasProps {
+  stageRef?: React.RefObject<Konva.Stage | null>;
+}
+
+export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
+  const { state, setSelection, deleteSelected, undo, redo } = useDiagram();
+  const internalStageRef = useRef<Konva.Stage>(null);
+  const stageRef = externalStageRef || internalStageRef;
+  const transformerRef = useRef<Konva.Transformer>(null);
+
+  const width = CANVAS.WIDTH;
+  const height = state.canvasHeight;
 
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -50,8 +64,58 @@ export default function Canvas() {
     [setSelection]
   );
 
-  const width = CANVAS.WIDTH;
-  const height = state.canvasHeight;
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        deleteSelected();
+      }
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteSelected, undo, redo]);
+
+  // Update transformer selection
+  useEffect(() => {
+    const transformer = transformerRef.current;
+    const stage = stageRef.current;
+    if (!transformer || !stage) return;
+
+    const selectedNodes = state.selectedIds
+      .map((id) => stage.findOne(`#${id}`))
+      .filter((node): node is Konva.Node => node !== undefined);
+
+    transformer.nodes(selectedNodes);
+    transformer.getLayer()?.batchDraw();
+  }, [state.selectedIds, stageRef]);
+
+  const renderElement = (el: typeof state.elements[0]) => {
+    const isSelected = state.selectedIds.includes(el.id);
+    const props = { key: el.id, element: el, isSelected };
+
+    switch (el.type) {
+      case 'rect':
+        return <RectShape {...props} />;
+      case 'circle':
+        return <CircleCallout {...props} />;
+      case 'text':
+        return <TextLabel {...props} />;
+      case 'icon':
+        return <IconShape {...props} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="canvas-container">
@@ -69,7 +133,22 @@ export default function Canvas() {
           {state.snapEnabled && <GridLines width={width} height={height} />}
         </Layer>
         <Layer>
-          {/* Shape and connector layers will be added in later tasks */}
+          {state.connectors.map((c) => (
+            <ConnectorLine
+              key={c.id}
+              connector={c}
+              isSelected={state.selectedIds.includes(c.id)}
+            />
+          ))}
+          {state.elements.map(renderElement)}
+          <Transformer
+            ref={transformerRef}
+            borderStroke="#4a90d9"
+            anchorStroke="#4a90d9"
+            anchorSize={8}
+            anchorCornerRadius={2}
+            rotateEnabled={false}
+          />
         </Layer>
       </Stage>
     </div>
