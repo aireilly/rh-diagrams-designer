@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
@@ -47,21 +47,54 @@ interface CanvasProps {
 }
 
 export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
-  const { state, setSelection, deleteSelected, undo, redo } = useDiagram();
+  const { state, setSelection, deleteSelected, undo, redo, addConnector, dispatch } = useDiagram();
   const internalStageRef = useRef<Konva.Stage>(null);
   const stageRef = externalStageRef || internalStageRef;
   const transformerRef = useRef<Konva.Transformer>(null);
+  const [pendingFrom, setPendingFrom] = useState<string | null>(null);
 
   const width = CANVAS.WIDTH;
   const height = state.canvasHeight;
 
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
-      if (e.target === e.target.getStage()) {
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (clickedOnEmpty) {
         setSelection([]);
+        setPendingFrom(null);
+        return;
+      }
+
+      // Check if a connector tool is active and a shape was clicked
+      if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
+        const clickedId = e.target.parent?.id() || e.target.id();
+        if (!clickedId) return;
+        const el = state.elements.find(
+          (el) => el.id === clickedId || e.target.parent?.id() === el.id
+        );
+        if (!el) return;
+
+        if (!pendingFrom) {
+          setPendingFrom(el.id);
+        } else if (pendingFrom !== el.id) {
+          const lineType = state.tool === 'connector-solid' ? 'solid' : 'dashed';
+          addConnector({
+            id: `conn-${Date.now()}`,
+            fromId: pendingFrom,
+            toId: el.id,
+            lineType,
+            arrowDirection: 'forward',
+            strokeWidth: 1,
+            stroke: COLORS.DARK_GRAY,
+            points: [],
+            isElbow: false,
+          });
+          setPendingFrom(null);
+          dispatch({ type: 'SET_TOOL', tool: 'select' });
+        }
       }
     },
-    [setSelection]
+    [setSelection, state.tool, state.elements, pendingFrom, addConnector, dispatch]
   );
 
   // Keyboard shortcuts
