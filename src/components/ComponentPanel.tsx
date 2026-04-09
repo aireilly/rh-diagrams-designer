@@ -73,21 +73,21 @@ function createIconElement(iconId: string): DiagramElement {
   };
 }
 
-function createTextElement(): DiagramElement {
+function createTextElement(x: number, y: number): DiagramElement {
   return {
     id: generateId('text'),
     type: 'text',
-    x: 50,
-    y: 50,
+    x,
+    y,
     width: 160,
     height: 24,
     rotation: 0,
     fill: '',
     stroke: '',
     strokeWidth: 0,
-    text: 'Label Example',
+    text: 'Label',
     fontSize: 14,
-    fontWeight: 'medium',
+    fontWeight: 'bold',
     textColor: COLORS.DARK_GRAY,
     groupId: null,
   };
@@ -121,7 +121,11 @@ export default function ComponentPanel() {
   };
 
   const handleAddText = () => {
-    addElement(createTextElement());
+    // If a shape is selected, position label at its top-left inside corner
+    const selectedEl = state.elements.find((el) => el.id === state.selectedIds[0]);
+    const x = selectedEl ? selectedEl.x + 8 : 50;
+    const y = selectedEl ? selectedEl.y + 8 : 50;
+    addElement(createTextElement(x, y));
   };
 
   const handleSelectConnectorTool = (tool: string) => {

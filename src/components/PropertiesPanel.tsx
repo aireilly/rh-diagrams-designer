@@ -1,7 +1,18 @@
 import { useDiagram } from '../state/DiagramContext';
-import { COLOR_SWATCHES, FONT_SIZES, FONT_WEIGHTS } from '../constants';
-import { AnchorSide, ArrowDirection, ConnectorType, FontWeight } from '../types';
+import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS } from '../constants';
+import { AnchorSide, ArrowDirection, ConnectorType, FontWeight, TextPosition } from '../types';
 import './PropertiesPanel.css';
+
+const CONNECTOR_COLORS = [
+  { name: 'Gray 50', hex: COLORS.GRAY_50 },
+  { name: 'Gray 95', hex: COLORS.GRAY_95 },
+  { name: 'Purple 50 (Provisioning)', hex: COLORS.PURPLE_50 },
+  { name: 'Green 50 (Internal)', hex: COLORS.GREEN_50 },
+  { name: 'Red Orange 50 (Storage 1)', hex: COLORS.RED_ORANGE_50 },
+  { name: 'Yellow 40 (Storage 2)', hex: COLORS.YELLOW_40 },
+  { name: 'Blue 50 (Provider)', hex: COLORS.BLUE_50 },
+  { name: 'Blue 40 (External)', hex: COLORS.BLUE_40 },
+];
 
 export default function PropertiesPanel() {
   const { state, updateElement, dispatch } = useDiagram();
@@ -66,7 +77,7 @@ export default function PropertiesPanel() {
         </div>
 
         <div className="prop-group">
-          <label className="prop-label">Stroke</label>
+          <label className="prop-label">Stroke Width</label>
           <div className="prop-button-row">
             {[1, 2].map((w) => (
               <button
@@ -76,6 +87,21 @@ export default function PropertiesPanel() {
               >
                 {w}px
               </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <label className="prop-label">Color</label>
+          <div className="swatch-row">
+            {CONNECTOR_COLORS.map((c) => (
+              <button
+                key={c.hex}
+                className={`swatch ${(connector.stroke || COLORS.DARK_GRAY) === c.hex ? 'active' : ''}`}
+                style={{ backgroundColor: c.hex }}
+                onClick={() => updateConnector({ stroke: c.hex })}
+                title={c.name}
+              />
             ))}
           </div>
         </div>
@@ -170,6 +196,24 @@ export default function PropertiesPanel() {
         </div>
       )}
 
+      {/* Text Position */}
+      {element.type === 'rect' && (
+        <div className="prop-group">
+          <label className="prop-label">Label Position</label>
+          <div className="prop-button-row">
+            {(['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'] as TextPosition[]).map((pos) => (
+              <button
+                key={pos}
+                className={`prop-btn ${(element.textPosition || 'top-left') === pos ? 'active' : ''}`}
+                onClick={() => updateElement(element.id, { textPosition: pos })}
+              >
+                {pos === 'top-left' ? 'TL' : pos === 'top-right' ? 'TR' : pos === 'center' ? 'Mid' : pos === 'bottom-left' ? 'BL' : 'BR'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Fill Color */}
       {element.type === 'rect' && (
         <div className="prop-group">
@@ -188,7 +232,8 @@ export default function PropertiesPanel() {
                 className={`swatch ${element.fill === c.hex ? 'active' : ''}`}
                 style={{ backgroundColor: c.hex }}
                 onClick={() => {
-                  const isDark = c.hex === '#0066cc' || c.hex === '#262626' || c.hex === '#595959';
+                  const darkColors = ['#151515', '#707070', '#0066cc', '#4394e5', '#63993d', '#5e40be', '#f0561d', '#b98412'];
+                  const isDark = darkColors.includes(c.hex);
                   updateElement(element.id, {
                     fill: c.hex,
                     textColor: isDark ? '#ffffff' : '#262626',

@@ -3,6 +3,7 @@ export type ConnectorType = 'solid' | 'dashed';
 export type ArrowDirection = 'forward' | 'backward' | 'bidirectional' | 'none';
 export type AnchorSide = 'auto' | 'top' | 'bottom' | 'left' | 'right';
 export type FontWeight = 'bold' | 'medium';
+export type TextPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
 export type BoxVariant = 'filled' | 'outlined' | 'gray' | 'white';
 
 export interface Position {
@@ -30,6 +31,7 @@ export interface DiagramElement {
   fontSize: number;
   fontWeight: FontWeight;
   textColor: string;
+  textPosition?: TextPosition;
   variant?: BoxVariant;
   iconId?: string;
   groupId?: string | null;

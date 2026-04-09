@@ -1,4 +1,4 @@
-import { DiagramState, DiagramElement, Connector, AnchorSide } from '../types';
+import { DiagramState, DiagramElement, Connector, AnchorSide, TextPosition } from '../types';
 import { CANVAS, FONT_FAMILY, CALLOUT_CIRCLE, COLORS, ARROWHEAD } from '../constants';
 
 function escapeXml(str: string): string {
@@ -24,9 +24,16 @@ function renderRect(el: DiagramElement): string {
 
   if (el.text) {
     const fontStyle = el.fontWeight === 'bold' ? 'font-weight:bold' : 'font-weight:500';
-    const tx = el.x + el.width / 2;
-    const ty = el.y + el.height / 2;
-    parts.push(`  <text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" font-family="${FONT_FAMILY}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`);
+    const pos: TextPosition = el.textPosition || 'top-left';
+    let tx: number, ty: number, anchor: string;
+
+    if (pos === 'top-left') { tx = el.x + 8; ty = el.y + 8 + el.fontSize; anchor = 'start'; }
+    else if (pos === 'top-right') { tx = el.x + el.width - 8; ty = el.y + 8 + el.fontSize; anchor = 'end'; }
+    else if (pos === 'bottom-left') { tx = el.x + 8; ty = el.y + el.height - 8; anchor = 'start'; }
+    else if (pos === 'bottom-right') { tx = el.x + el.width - 8; ty = el.y + el.height - 8; anchor = 'end'; }
+    else { tx = el.x + el.width / 2; ty = el.y + el.height / 2 + el.fontSize / 3; anchor = 'middle'; }
+
+    parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${FONT_FAMILY}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`);
   }
 
   return parts.join('\n');

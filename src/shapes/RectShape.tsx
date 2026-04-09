@@ -1,10 +1,22 @@
 import { useRef } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import type Konva from 'konva';
-import { DiagramElement } from '../types';
+import { DiagramElement, TextPosition } from '../types';
 import { FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
 import { useDiagram } from '../state/DiagramContext';
+
+function textAlign(pos?: TextPosition): string {
+  if (!pos || pos === 'top-left' || pos === 'bottom-left') return 'left';
+  if (pos === 'top-right' || pos === 'bottom-right') return 'right';
+  return 'center';
+}
+
+function textVAlign(pos?: TextPosition): string {
+  if (!pos || pos === 'top-left' || pos === 'top-right') return 'top';
+  if (pos === 'bottom-left' || pos === 'bottom-right') return 'bottom';
+  return 'middle';
+}
 
 interface RectShapeProps {
   element: DiagramElement;
@@ -74,7 +86,7 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
     textarea.style.height = `${element.height * state.zoom}px`;
     textarea.style.fontSize = `${element.fontSize * state.zoom}px`;
     textarea.style.fontFamily = FONT_FAMILY;
-    textarea.style.textAlign = 'center';
+    textarea.style.textAlign = textAlign(element.textPosition);
     textarea.style.border = '2px solid #4a90d9';
     textarea.style.padding = '4px';
     textarea.style.margin = '0';
@@ -124,8 +136,8 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
         text={element.text}
         width={element.width}
         height={element.height}
-        align="center"
-        verticalAlign="middle"
+        align={textAlign(element.textPosition)}
+        verticalAlign={textVAlign(element.textPosition)}
         fontSize={element.fontSize}
         fontFamily={FONT_FAMILY}
         fontStyle={element.fontWeight === 'bold' ? 'bold' : '500'}

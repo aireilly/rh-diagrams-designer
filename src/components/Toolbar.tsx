@@ -1,14 +1,20 @@
 import { useDiagram } from '../state/DiagramContext';
-import { ZOOM } from '../constants';
+import { ZOOM, COLORS } from '../constants';
+import { DiagramElement } from '../types';
 import { serializeProject, deserializeProject, downloadFile, loadFile } from '../utils/projectFile';
 import './Toolbar.css';
+
+const CLUSTER_GAP = 5;
+const BUNDLE_PADDING = 10;
+
+let nextBundleId = 1;
 
 interface ToolbarProps {
   onExport: () => void;
 }
 
 export default function Toolbar({ onExport }: ToolbarProps) {
-  const { state, dispatch, undo, redo, canUndo, canRedo } = useDiagram();
+  const { state, dispatch, undo, redo, canUndo, canRedo, updateElement, addElement } = useDiagram();
 
   const handleZoomIn = () => {
     const next = Math.min(state.zoom + ZOOM.STEP, ZOOM.MAX);
@@ -27,6 +33,95 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const handleSelectTool = () => {
     dispatch({ type: 'SET_TOOL', tool: 'select' });
   };
+
+  const handleCluster = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+
+    // Sort by current x position (left to right)
+    const sorted = [...selected].sort((a, b) => a.x - b.x);
+
+    // Align to the topmost y position
+    const topY = Math.min(...sorted.map((el) => el.y));
+
+    // Arrange horizontally with 5px gaps
+    let currentX = sorted[0].x;
+    for (const el of sorted) {
+      updateElement(el.id, { x: currentX, y: topY });
+      currentX += el.width + CLUSTER_GAP;
+    }
+  };
+
+  const handleBundle = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+
+    // Cluster first: sort by x, arrange with 5px gaps, align tops
+    const sorted = [...selected].sort((a, b) => a.x - b.x);
+    const topY = Math.min(...sorted.map((el) => el.y));
+
+    let currentX = sorted[0].x;
+    for (const el of sorted) {
+      updateElement(el.id, { x: currentX, y: topY });
+      currentX += el.width + CLUSTER_GAP;
+    }
+
+    // Calculate bounding box of the clustered shapes
+    const totalWidth = currentX - CLUSTER_GAP - sorted[0].x;
+    const maxHeight = Math.max(...sorted.map((el) => el.height));
+
+    // Create a dashed container rect around the cluster with 10px padding
+    const container: DiagramElement = {
+      id: `bundle-${nextBundleId++}`,
+      type: 'rect',
+      x: sorted[0].x - BUNDLE_PADDING,
+      y: topY - BUNDLE_PADDING,
+      width: totalWidth + BUNDLE_PADDING * 2,
+      height: maxHeight + BUNDLE_PADDING * 2,
+      rotation: 0,
+      fill: '',
+      stroke: COLORS.GRAY_50,
+      strokeWidth: 1,
+      text: '',
+      fontSize: 14,
+      fontWeight: 'bold',
+      textColor: COLORS.DARK_GRAY,
+      groupId: null,
+    };
+    addElement(container);
+  };
+
+  const handleStack = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length === 0) return;
+
+    for (const el of selected) {
+      // Add two offset rects behind the shape, stepping 5px down-right
+      for (let i = 2; i >= 1; i--) {
+        const stackRect: DiagramElement = {
+          id: `stack-${nextBundleId++}`,
+          type: 'rect',
+          x: el.x + i * 5,
+          y: el.y + i * 5,
+          width: el.width,
+          height: el.height,
+          rotation: 0,
+          fill: el.fill || '',
+          stroke: el.stroke || COLORS.GRAY_50,
+          strokeWidth: 1,
+          text: '',
+          fontSize: 14,
+          fontWeight: 'bold',
+          textColor: COLORS.DARK_GRAY,
+          groupId: null,
+        };
+        addElement(stackRect);
+      }
+    }
+  };
+
+  const canCluster = state.selectedIds.filter((id) => state.elements.some((el) => el.id === id)).length >= 2;
+  const canStack = state.selectedIds.some((id) => state.elements.some((el) => el.id === id));
 
   const handleSave = () => {
     const json = serializeProject(state);
@@ -69,6 +164,20 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         </button>
         <button className="toolbar-btn" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">
           Redo
+        </button>
+      </div>
+
+      <div className="toolbar-separator" />
+
+      <div className="toolbar-group">
+        <button className="toolbar-btn" onClick={handleCluster} disabled={!canCluster} title="Arrange selected shapes in a row with 5px gaps">
+          Cluster
+        </button>
+        <button className="toolbar-btn" onClick={handleBundle} disabled={!canCluster} title="Cluster and wrap in a dashed container">
+          Bundle
+        </button>
+        <button className="toolbar-btn" onClick={handleStack} disabled={!canStack} title="Add stack lines behind selected shape">
+          Stack
         </button>
       </div>
 
