@@ -1,4 +1,5 @@
-import { Group, Shape, Text, Rect } from 'react-konva';
+import { useEffect, useState } from 'react';
+import { Group, Image, Text, Rect } from 'react-konva';
 import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
@@ -7,6 +8,29 @@ import { snapToGrid } from '../utils/snapGrid';
 import { useDiagram } from '../state/DiagramContext';
 
 const ICON_SCALE = 2;
+
+// Cache loaded images by key to avoid re-creating on every render
+const imageCache = new Map<string, HTMLImageElement>();
+
+function useIconImage(iconId: string, viewBox: string, path: string, width: number, height: number, fill: string) {
+  const [image, setImage] = useState<HTMLImageElement | null>(() => imageCache.get(iconId) ?? null);
+
+  useEffect(() => {
+    if (imageCache.has(iconId)) {
+      setImage(imageCache.get(iconId)!);
+      return;
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${width}" height="${height}"><path d="${path}" fill="${fill}" fill-rule="evenodd"/></svg>`;
+    const img = new window.Image();
+    img.onload = () => {
+      imageCache.set(iconId, img);
+      setImage(img);
+    };
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }, [iconId, viewBox, path, width, height, fill]);
+
+  return image;
+}
 
 interface IconShapeProps {
   element: DiagramElement;
@@ -42,7 +66,6 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   const scaledWidth = icon.width * ICON_SCALE;
   const scaledHeight = icon.height * ICON_SCALE;
   const label = element.text || icon.name;
-  // Find the longest word to set minimum width — prevents mid-word breaks
   const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
   const minWordWidth = longestWord.length * 8 + 16;
   const totalWidth = Math.max(scaledWidth, minWordWidth, 80);
@@ -50,8 +73,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   const labelHeight = labelLines * 14 + 4;
   const totalHeight = scaledHeight + labelHeight + 6;
 
-  const vbW = parseFloat(icon.viewBox.split(' ')[2]);
-  const vbH = parseFloat(icon.viewBox.split(' ')[3]);
+  const iconImage = useIconImage(icon.id, icon.viewBox, icon.path, scaledWidth, scaledHeight, COLORS.ICON_GRAY);
 
   return (
     <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
@@ -66,22 +88,16 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
         height={totalHeight}
         fill="transparent"
       />
-      <Shape
-        x={(totalWidth - scaledWidth) / 2}
-        y={0}
-        width={scaledWidth}
-        height={scaledHeight}
-        sceneFunc={(ctx) => {
-          const nativeCtx = (ctx as unknown as { _context: CanvasRenderingContext2D })._context;
-          nativeCtx.save();
-          nativeCtx.scale(scaledWidth / vbW, scaledHeight / vbH);
-          const p = new Path2D(icon.path);
-          nativeCtx.fillStyle = COLORS.ICON_GRAY;
-          nativeCtx.fill(p, 'evenodd');
-          nativeCtx.restore();
-        }}
-        listening={false}
-      />
+      {iconImage && (
+        <Image
+          image={iconImage}
+          x={(totalWidth - scaledWidth) / 2}
+          y={0}
+          width={scaledWidth}
+          height={scaledHeight}
+          listening={false}
+        />
+      )}
       <Text
         text={label}
         y={scaledHeight + 6}
