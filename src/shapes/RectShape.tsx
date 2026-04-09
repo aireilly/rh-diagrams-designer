@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import type Konva from 'konva';
 import { DiagramElement, TextPosition } from '../types';
-import { FONT_FAMILY, GRID } from '../constants';
+import { COLORS, FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
 import { useDiagram } from '../state/DiagramContext';
 
@@ -123,6 +123,12 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
       onDragEnd={handleDragEnd}
       onTransformEnd={handleTransformEnd}
     >
+      {element.stacked && (
+        <>
+          <Rect x={10} y={10} width={element.width} height={element.height} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Rect x={5} y={5} width={element.width} height={element.height} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+        </>
+      )}
       <Rect
         width={element.width}
         height={element.height}

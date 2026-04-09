@@ -96,27 +96,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
     if (selected.length === 0) return;
 
     for (const el of selected) {
-      // Add two offset rects behind the shape, stepping 5px down-right
-      for (let i = 2; i >= 1; i--) {
-        const stackRect: DiagramElement = {
-          id: `stack-${nextBundleId++}`,
-          type: 'rect',
-          x: el.x + i * 5,
-          y: el.y + i * 5,
-          width: el.width,
-          height: el.height,
-          rotation: 0,
-          fill: el.fill || '',
-          stroke: el.stroke || COLORS.GRAY_50,
-          strokeWidth: 1,
-          text: '',
-          fontSize: 14,
-          fontWeight: 'bold',
-          textColor: COLORS.DARK_GRAY,
-          groupId: null,
-        };
-        addElement(stackRect);
-      }
+      updateElement(el.id, { stacked: !el.stacked });
     }
   };
 

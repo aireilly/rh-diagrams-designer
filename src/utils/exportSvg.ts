@@ -12,6 +12,11 @@ function escapeXml(str: string): string {
 function renderRect(el: DiagramElement): string {
   const parts: string[] = [];
 
+  if (el.stacked) {
+    parts.push(`  <rect x="${el.x + 10}" y="${el.y + 10}" width="${el.width}" height="${el.height}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
+    parts.push(`  <rect x="${el.x + 5}" y="${el.y + 5}" width="${el.width}" height="${el.height}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
+  }
+
   if (el.fill) {
     parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" />`);
   }

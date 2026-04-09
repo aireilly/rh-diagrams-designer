@@ -52,6 +52,9 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   const stageRef = externalStageRef || internalStageRef;
   const transformerRef = useRef<Konva.Transformer>(null);
   const [pendingFrom, setPendingFrom] = useState<string | null>(null);
+  const [selRect, setSelRect] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const isDraggingSelection = useRef(false);
+  const justFinishedDragSelect = useRef(false);
 
   const isConnectorMode = state.tool === 'connector-solid' || state.tool === 'connector-dashed';
   const width = CANVAS.WIDTH;
@@ -59,6 +62,11 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
 
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (justFinishedDragSelect.current) {
+        justFinishedDragSelect.current = false;
+        return;
+      }
+
       const clickedOnEmpty = e.target === e.target.getStage();
       if (clickedOnEmpty) {
         setSelection([]);
@@ -105,6 +113,71 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     },
     [setSelection, state.tool, state.elements, pendingFrom, addConnector, dispatch]
   );
+
+  const handleMouseDown = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (isConnectorMode) return;
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (!clickedOnEmpty) return;
+
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+
+      const x = pointer.x / state.zoom;
+      const y = pointer.y / state.zoom;
+      isDraggingSelection.current = true;
+      setSelRect({ x1: x, y1: y, x2: x, y2: y });
+    },
+    [isConnectorMode, state.zoom]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      if (!isDraggingSelection.current || !selRect) return;
+
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return;
+
+      setSelRect({ ...selRect, x2: pointer.x / state.zoom, y2: pointer.y / state.zoom });
+    },
+    [selRect, state.zoom]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDraggingSelection.current || !selRect) {
+      isDraggingSelection.current = false;
+      setSelRect(null);
+      return;
+    }
+
+    isDraggingSelection.current = false;
+
+    const x1 = Math.min(selRect.x1, selRect.x2);
+    const y1 = Math.min(selRect.y1, selRect.y2);
+    const x2 = Math.max(selRect.x1, selRect.x2);
+    const y2 = Math.max(selRect.y1, selRect.y2);
+
+    // Only select if dragged more than 3px (avoid accidental micro-drags)
+    if (x2 - x1 > 3 || y2 - y1 > 3) {
+      const ids = state.elements
+        .filter((el) => {
+          const ex = el.x;
+          const ey = el.y;
+          const ew = el.width;
+          const eh = el.height;
+          return ex < x2 && ex + ew > x1 && ey < y2 && ey + eh > y1;
+        })
+        .map((el) => el.id);
+      setSelection(ids);
+      justFinishedDragSelect.current = true;
+    }
+
+    setSelRect(null);
+  }, [selRect, state.elements, setSelection]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -186,6 +259,9 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         scaleX={state.zoom}
         scaleY={state.zoom}
         onClick={handleStageClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         className="diagram-stage"
       >
         <Layer>
@@ -200,7 +276,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
               isSelected={state.selectedIds.includes(c.id)}
             />
           ))}
-          {state.elements.map(renderElement)}
+          {state.elements.filter((el) => el.type !== 'circle').map(renderElement)}
+          {state.elements.filter((el) => el.type === 'circle').map(renderElement)}
           <Transformer
             ref={transformerRef}
             borderStroke="#4a90d9"
@@ -209,6 +286,19 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
             anchorCornerRadius={2}
             rotateEnabled={false}
           />
+          {selRect && (
+            <Rect
+              x={Math.min(selRect.x1, selRect.x2)}
+              y={Math.min(selRect.y1, selRect.y2)}
+              width={Math.abs(selRect.x2 - selRect.x1)}
+              height={Math.abs(selRect.y2 - selRect.y1)}
+              fill="rgba(74, 144, 217, 0.1)"
+              stroke="#4a90d9"
+              strokeWidth={1}
+              dash={[4, 4]}
+              listening={false}
+            />
+          )}
         </Layer>
       </Stage>
     </div>

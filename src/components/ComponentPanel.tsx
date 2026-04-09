@@ -58,7 +58,7 @@ function createIconElement(iconId: string): DiagramElement {
     type: 'icon',
     x: 50,
     y: 50,
-    width: Math.max((icon?.width ?? 24) * 2, 60),
+    width: Math.max((icon?.width ?? 24) * 2, (icon?.name ?? 'Icon').length * 7 + 10, 80),
     height: (icon?.height ?? 24) * 2 + 24,
     rotation: 0,
     fill: COLORS.ICON_GRAY,

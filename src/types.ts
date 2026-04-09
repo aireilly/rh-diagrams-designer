@@ -35,6 +35,7 @@ export interface DiagramElement {
   variant?: BoxVariant;
   iconId?: string;
   groupId?: string | null;
+  stacked?: boolean;
 }
 
 export interface Connector {

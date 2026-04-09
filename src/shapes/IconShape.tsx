@@ -24,7 +24,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-      return; // Let click bubble to stage for connector wiring
+      return;
     }
     e.cancelBubble = true;
     if (e.evt.shiftKey) {
@@ -41,16 +41,26 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
 
   const scaledWidth = icon.width * ICON_SCALE;
   const scaledHeight = icon.height * ICON_SCALE;
-  const labelHeight = 20;
-  const totalHeight = scaledHeight + labelHeight + 4;
-  const totalWidth = Math.max(scaledWidth, 60);
+  const label = element.text || icon.name;
+  // Find the longest word to set minimum width — prevents mid-word breaks
+  const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
+  const minWordWidth = longestWord.length * 8 + 16;
+  const totalWidth = Math.max(scaledWidth, minWordWidth, 80);
+  const labelLines = Math.ceil(label.length * 7 / totalWidth) + 1;
+  const labelHeight = labelLines * 14 + 4;
+  const totalHeight = scaledHeight + labelHeight + 6;
 
   const vbW = parseFloat(icon.viewBox.split(' ')[2]);
   const vbH = parseFloat(icon.viewBox.split(' ')[3]);
 
   return (
     <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
-      {/* Invisible hit area covering the entire icon + label */}
+      {element.stacked && (
+        <>
+          <Rect x={10} y={10} width={totalWidth} height={totalHeight} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Rect x={5} y={5} width={totalWidth} height={totalHeight} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+        </>
+      )}
       <Rect
         width={totalWidth}
         height={totalHeight}
@@ -61,19 +71,20 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
         fill={COLORS.ICON_GRAY}
         x={(totalWidth - scaledWidth) / 2}
         y={0}
-        scaleX={(scaledWidth) / vbW}
-        scaleY={(scaledHeight) / vbH}
+        scaleX={scaledWidth / vbW}
+        scaleY={scaledHeight / vbH}
         listening={false}
       />
       <Text
-        text={element.text || icon.name}
-        y={scaledHeight + 4}
+        text={label}
+        y={scaledHeight + 6}
         width={totalWidth}
-        fontSize={14}
+        fontSize={12}
         fontFamily={FONT_FAMILY}
         fontStyle="500"
         fill={COLORS.DARK_GRAY}
         align="center"
+        wrap="word"
         listening={false}
       />
       {isSelected && (

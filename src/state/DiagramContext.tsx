@@ -33,14 +33,28 @@ export function DiagramProvider({ children }: { children: ReactNode }) {
   const deleteSelected = useCallback(() => {
     const ids = history.present.selectedIds;
     if (ids.length === 0) return;
-    const connectorIds = history.present.connectors
+
+    // Find directly selected connectors
+    const selectedConnectorIds = ids.filter((id) =>
+      history.present.connectors.some((c) => c.id === id)
+    );
+    // Find connectors attached to selected elements
+    const attachedConnectorIds = history.present.connectors
       .filter((c) => ids.includes(c.fromId) || ids.includes(c.toId))
       .map((c) => c.id);
-    if (connectorIds.length > 0) {
-      dispatch({ type: 'DELETE_CONNECTORS', ids: connectorIds });
+    const allConnectorIds = [...new Set([...selectedConnectorIds, ...attachedConnectorIds])];
+
+    if (allConnectorIds.length > 0) {
+      dispatch({ type: 'DELETE_CONNECTORS', ids: allConnectorIds });
     }
-    dispatch({ type: 'DELETE_ELEMENTS', ids });
-  }, [history.present.selectedIds, history.present.connectors]);
+
+    const elementIds = ids.filter((id) =>
+      history.present.elements.some((el) => el.id === id)
+    );
+    if (elementIds.length > 0) {
+      dispatch({ type: 'DELETE_ELEMENTS', ids: elementIds });
+    }
+  }, [history.present.selectedIds, history.present.connectors, history.present.elements]);
 
   const moveElement = useCallback((id: string, x: number, y: number) => {
     dispatch({ type: 'MOVE_ELEMENT', id, x, y });
