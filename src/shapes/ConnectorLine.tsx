@@ -127,22 +127,31 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
     onClick: handleClick,
   };
 
+  const color = isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY);
+  const arrowProps = {
+    pointerLength: arrowSize,
+    pointerWidth: arrowSize,
+    fill: color,
+    strokeScaleEnabled: false,
+  };
+
   if (connector.arrowDirection === 'none') {
+    return <Line {...commonProps} strokeScaleEnabled={false} />;
+  }
+
+  if (connector.arrowDirection === 'backward') {
+    return <Arrow {...commonProps} {...arrowProps} points={[...points].reverse()} />;
+  }
+
+  if (connector.arrowDirection === 'bidirectional') {
     return (
-      <Line
-        {...commonProps}
-        strokeScaleEnabled={false}
-      />
+      <>
+        <Arrow {...commonProps} {...arrowProps} />
+        <Arrow {...commonProps} {...arrowProps} points={[...points].reverse()} />
+      </>
     );
   }
 
-  return (
-    <Arrow
-      {...commonProps}
-      pointerLength={arrowSize}
-      pointerWidth={arrowSize}
-      fill={isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY)}
-      strokeScaleEnabled={false}
-    />
-  );
+  // forward
+  return <Arrow {...commonProps} {...arrowProps} />;
 }

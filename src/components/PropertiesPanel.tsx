@@ -28,7 +28,7 @@ export default function PropertiesPanel() {
     const toEl = state.elements.find((e) => e.id === connector.toId);
 
     const sides: AnchorSide[] = ['auto', 'top', 'bottom', 'left', 'right'];
-    const directions: ArrowDirection[] = ['forward', 'bidirectional', 'none'];
+    const directions: ArrowDirection[] = ['forward', 'backward', 'bidirectional', 'none'];
     const lineTypes: ConnectorType[] = ['solid', 'dashed'];
 
     return (
@@ -59,7 +59,7 @@ export default function PropertiesPanel() {
                 className={`prop-btn ${connector.arrowDirection === d ? 'active' : ''}`}
                 onClick={() => updateConnector({ arrowDirection: d })}
               >
-                {d === 'forward' ? 'Forward' : d === 'bidirectional' ? 'Both' : 'None'}
+                {d === 'forward' ? 'Forward' : d === 'backward' ? 'Backward' : d === 'bidirectional' ? 'Both' : 'None'}
               </button>
             ))}
           </div>

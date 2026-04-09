@@ -113,6 +113,8 @@ function renderConnector(connector: Connector, elements: DiagramElement[]): stri
   let markerAttr = '';
   if (connector.arrowDirection === 'forward') {
     markerAttr = ` marker-end="url(#${markerId})"`;
+  } else if (connector.arrowDirection === 'backward') {
+    markerAttr = ` marker-start="url(#${markerId})"`;
   } else if (connector.arrowDirection === 'bidirectional') {
     markerAttr = ` marker-start="url(#${markerId})" marker-end="url(#${markerId})"`;
   }
