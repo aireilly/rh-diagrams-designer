@@ -20,6 +20,15 @@
   margin-bottom: 8px;
 }
 
+.section-title-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-title-toggle:hover {
+  color: #0066cc;
+}
+
 .component-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

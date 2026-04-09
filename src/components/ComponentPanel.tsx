@@ -1,8 +1,21 @@
+import { useState } from 'react';
 import { useDiagram } from '../state/DiagramContext';
 import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE } from '../constants';
 import { DiagramElement } from '../types';
 import { ICONS } from '../shapes/iconPaths';
 import './ComponentPanel.css';
+
+const ICON_CATEGORIES: { label: string; prefix: string }[] = [
+  { label: 'Hardware', prefix: 'hardware-' },
+  { label: 'Software', prefix: 'software-' },
+  { label: 'People', prefix: 'people-' },
+  { label: 'Objects', prefix: 'object-' },
+  { label: 'Diagrams', prefix: 'diagram-' },
+  { label: 'Cloud', prefix: 'cloud-' },
+  { label: 'Documents', prefix: 'document-' },
+  { label: 'Arrows', prefix: 'arrows-' },
+  { label: 'Misc', prefix: '' },
+];
 
 let nextId = 1;
 function generateId(prefix: string): string {
@@ -217,6 +230,49 @@ function createNicComponents(startX: number, startY: number): DiagramElement[] {
   return elements;
 }
 
+function IconCategorySections({ onAddIcon }: { onAddIcon: (id: string) => void }) {
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+
+  const toggle = (label: string) => {
+    setOpenCats((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const assigned = new Set<string>();
+
+  return (
+    <>
+      {ICON_CATEGORIES.map((cat) => {
+        const icons = cat.prefix
+          ? ICONS.filter((i) => i.id.startsWith(cat.prefix))
+          : ICONS.filter((i) => !assigned.has(i.id));
+        if (cat.prefix) icons.forEach((i) => assigned.add(i.id));
+        if (icons.length === 0) return null;
+        const isOpen = !!openCats[cat.label];
+
+        return (
+          <section key={cat.label} className="panel-section">
+            <h4
+              className="section-title section-title-toggle"
+              onClick={() => toggle(cat.label)}
+            >
+              {isOpen ? '▾' : '▸'} {cat.label} ({icons.length})
+            </h4>
+            {isOpen && (
+              <div className="component-grid">
+                {icons.map((icon) => (
+                  <button key={icon.id} className="component-btn" onClick={() => onAddIcon(icon.id)}>
+                    <span className="icon-label">{icon.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
+    </>
+  );
+}
+
 export default function ComponentPanel() {
   const { addElement, state, dispatch } = useDiagram();
 
@@ -293,16 +349,7 @@ export default function ComponentPanel() {
         </button>
       </section>
 
-      <section className="panel-section">
-        <h4 className="section-title">Icons</h4>
-        <div className="component-grid">
-          {ICONS.map((icon) => (
-            <button key={icon.id} className="component-btn" onClick={() => handleAddIcon(icon.id)}>
-              <span className="icon-label">{icon.name}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+      <IconCategorySections onAddIcon={handleAddIcon} />
 
       <section className="panel-section">
         <h4 className="section-title">Text</h4>
