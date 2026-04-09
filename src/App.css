@@ -5,6 +5,7 @@
 }
 
 :root {
+  --titlebar-height: 40px;
   --toolbar-height: 48px;
   --statusbar-height: 32px;
   --panel-width: 240px;
@@ -20,13 +21,42 @@ body {
 .app {
   display: grid;
   grid-template-columns: var(--panel-width) 1fr var(--panel-width);
-  grid-template-rows: var(--toolbar-height) 1fr var(--statusbar-height);
+  grid-template-rows: var(--titlebar-height) var(--toolbar-height) 1fr var(--statusbar-height);
   grid-template-areas:
+    "titlebar titlebar titlebar"
     "toolbar toolbar toolbar"
     "component-panel canvas properties-panel"
     "statusbar statusbar statusbar";
   height: 100vh;
   width: 100vw;
+}
+
+.title-bar {
+  grid-area: titlebar;
+  background: #262626;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.title-bar-name {
+  letter-spacing: 0.3px;
+}
+
+.title-bar-link {
+  color: #99c2eb;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.title-bar-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .toolbar {

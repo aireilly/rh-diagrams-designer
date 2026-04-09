@@ -21,6 +21,9 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
   };
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
+      return; // Let click bubble to stage for connector wiring
+    }
     e.cancelBubble = true;
     if (e.evt.shiftKey) {
       const ids = state.selectedIds.includes(element.id)

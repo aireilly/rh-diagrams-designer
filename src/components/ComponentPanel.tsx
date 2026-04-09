@@ -17,7 +17,7 @@ function createBoxElement(variant: keyof typeof BOX_VARIANTS): DiagramElement {
     x: 50,
     y: 50,
     width: 180,
-    height: 60,
+    height: 120,
     rotation: 0,
     fill: v.fill,
     stroke: v.stroke,
@@ -31,19 +31,19 @@ function createBoxElement(variant: keyof typeof BOX_VARIANTS): DiagramElement {
   };
 }
 
-function createCircleElement(): DiagramElement {
+function createCircleElement(number: number, x: number, y: number): DiagramElement {
   return {
     id: generateId('circle'),
     type: 'circle',
-    x: 50,
-    y: 50,
+    x,
+    y,
     width: CALLOUT_CIRCLE.RADIUS * 2,
     height: CALLOUT_CIRCLE.RADIUS * 2,
     rotation: 0,
     fill: CALLOUT_CIRCLE.FILL,
     stroke: '',
     strokeWidth: 0,
-    text: '1',
+    text: String(number),
     fontSize: CALLOUT_CIRCLE.FONT_SIZE,
     fontWeight: 'bold',
     textColor: CALLOUT_CIRCLE.TEXT_COLOR,
@@ -58,8 +58,8 @@ function createIconElement(iconId: string): DiagramElement {
     type: 'icon',
     x: 50,
     y: 50,
-    width: icon?.width ?? 24,
-    height: (icon?.height ?? 24) + 20,
+    width: Math.max((icon?.width ?? 24) * 2, 60),
+    height: (icon?.height ?? 24) * 2 + 24,
     rotation: 0,
     fill: COLORS.ICON_GRAY,
     stroke: '',
@@ -101,7 +101,19 @@ export default function ComponentPanel() {
   };
 
   const handleAddCircle = () => {
-    addElement(createCircleElement());
+    // Next number = highest existing callout number + 1
+    const existingNumbers = state.elements
+      .filter((el) => el.type === 'circle')
+      .map((el) => parseInt(el.text, 10))
+      .filter((n) => !isNaN(n));
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+
+    // If a shape is selected, position so the callout center sits on the shape's top-left corner
+    const selectedEl = state.elements.find((el) => el.id === state.selectedIds[0]);
+    const x = selectedEl ? selectedEl.x : 50;
+    const y = selectedEl ? selectedEl.y : 50;
+
+    addElement(createCircleElement(nextNumber, x, y));
   };
 
   const handleAddIcon = (iconId: string) => {

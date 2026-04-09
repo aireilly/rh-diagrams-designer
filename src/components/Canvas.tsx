@@ -47,12 +47,13 @@ interface CanvasProps {
 }
 
 export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
-  const { state, setSelection, deleteSelected, undo, redo, addConnector, dispatch } = useDiagram();
+  const { state, setSelection, deleteSelected, undo, redo, addConnector, moveElement, dispatch } = useDiagram();
   const internalStageRef = useRef<Konva.Stage>(null);
   const stageRef = externalStageRef || internalStageRef;
   const transformerRef = useRef<Konva.Transformer>(null);
   const [pendingFrom, setPendingFrom] = useState<string | null>(null);
 
+  const isConnectorMode = state.tool === 'connector-solid' || state.tool === 'connector-dashed';
   const width = CANVAS.WIDTH;
   const height = state.canvasHeight;
 
@@ -67,15 +68,22 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
 
       // Check if a connector tool is active and a shape was clicked
       if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-        const clickedId = e.target.parent?.id() || e.target.id();
-        if (!clickedId) return;
-        const el = state.elements.find(
-          (el) => el.id === clickedId || e.target.parent?.id() === el.id
-        );
+        // Walk up the node tree to find the Group with a matching element ID
+        let node: Konva.Node | null = e.target;
+        let el = null;
+        while (node && node !== e.target.getStage()) {
+          const id = node.id();
+          if (id) {
+            el = state.elements.find((e) => e.id === id);
+            if (el) break;
+          }
+          node = node.parent;
+        }
         if (!el) return;
 
         if (!pendingFrom) {
           setPendingFrom(el.id);
+          setSelection([el.id]); // Highlight the source shape
         } else if (pendingFrom !== el.id) {
           const lineType = state.tool === 'connector-solid' ? 'solid' : 'dashed';
           addConnector({
@@ -87,7 +95,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
             strokeWidth: 1,
             stroke: COLORS.DARK_GRAY,
             points: [],
-            isElbow: false,
+            fromSide: 'auto' as const,
+            toSide: 'auto' as const,
           });
           setPendingFrom(null);
           dispatch({ type: 'SET_TOOL', tool: 'select' });
@@ -102,6 +111,24 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
+      if (e.key === 'Escape') {
+        setPendingFrom(null);
+        dispatch({ type: 'SET_TOOL', tool: 'select' });
+      }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (state.selectedIds.length > 0) {
+          e.preventDefault();
+          const step = e.shiftKey ? 1 : GRID.MINOR;
+          const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+          const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+          for (const id of state.selectedIds) {
+            const el = state.elements.find((el) => el.id === id);
+            if (el) {
+              moveElement(id, el.x + dx, el.y + dy);
+            }
+          }
+        }
+      }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         deleteSelected();
       }
@@ -116,7 +143,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deleteSelected, undo, redo]);
+  }, [deleteSelected, undo, redo, state.selectedIds, state.elements, moveElement, dispatch]);
 
   // Update transformer selection
   useEffect(() => {
@@ -151,7 +178,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   };
 
   return (
-    <div className="canvas-container">
+    <div className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}`}>
       <Stage
         ref={stageRef}
         width={width * state.zoom}

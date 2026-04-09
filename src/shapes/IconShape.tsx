@@ -6,6 +6,8 @@ import { ICONS } from './iconPaths';
 import { snapToGrid } from '../utils/snapGrid';
 import { useDiagram } from '../state/DiagramContext';
 
+const ICON_SCALE = 2;
+
 interface IconShapeProps {
   element: DiagramElement;
   isSelected: boolean;
@@ -21,6 +23,9 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   };
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
+      return; // Let click bubble to stage for connector wiring
+    }
     e.cancelBubble = true;
     if (e.evt.shiftKey) {
       const ids = state.selectedIds.includes(element.id)
@@ -34,25 +39,37 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
 
   if (!icon) return null;
 
-  const labelHeight = 16;
-  const totalHeight = icon.height + labelHeight + 4;
-  const totalWidth = Math.max(icon.width, 60);
+  const scaledWidth = icon.width * ICON_SCALE;
+  const scaledHeight = icon.height * ICON_SCALE;
+  const labelHeight = 20;
+  const totalHeight = scaledHeight + labelHeight + 4;
+  const totalWidth = Math.max(scaledWidth, 60);
+
+  const vbW = parseFloat(icon.viewBox.split(' ')[2]);
+  const vbH = parseFloat(icon.viewBox.split(' ')[3]);
 
   return (
     <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
+      {/* Invisible hit area covering the entire icon + label */}
+      <Rect
+        width={totalWidth}
+        height={totalHeight}
+        fill="transparent"
+      />
       <Path
         data={icon.path}
         fill={COLORS.ICON_GRAY}
-        x={(totalWidth - icon.width) / 2}
+        x={(totalWidth - scaledWidth) / 2}
         y={0}
-        scaleX={icon.width / parseFloat(icon.viewBox.split(' ')[2])}
-        scaleY={icon.height / parseFloat(icon.viewBox.split(' ')[3])}
+        scaleX={(scaledWidth) / vbW}
+        scaleY={(scaledHeight) / vbH}
+        listening={false}
       />
       <Text
         text={element.text || icon.name}
-        y={icon.height + 4}
+        y={scaledHeight + 4}
         width={totalWidth}
-        fontSize={12}
+        fontSize={14}
         fontFamily={FONT_FAMILY}
         fontStyle="500"
         fill={COLORS.DARK_GRAY}

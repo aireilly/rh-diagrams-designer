@@ -1,10 +1,10 @@
 import { useDiagram } from '../state/DiagramContext';
 import { COLOR_SWATCHES, FONT_SIZES, FONT_WEIGHTS } from '../constants';
-import { FontWeight } from '../types';
+import { AnchorSide, ArrowDirection, ConnectorType, FontWeight } from '../types';
 import './PropertiesPanel.css';
 
 export default function PropertiesPanel() {
-  const { state, updateElement } = useDiagram();
+  const { state, updateElement, dispatch } = useDiagram();
 
   const selectedId = state.selectedIds[0];
   const element = state.elements.find((e) => e.id === selectedId);
@@ -20,11 +20,99 @@ export default function PropertiesPanel() {
   }
 
   if (connector) {
+    const updateConnector = (changes: Record<string, unknown>) => {
+      dispatch({ type: 'UPDATE_CONNECTOR', id: connector.id, changes });
+    };
+
+    const fromEl = state.elements.find((e) => e.id === connector.fromId);
+    const toEl = state.elements.find((e) => e.id === connector.toId);
+
+    const sides: AnchorSide[] = ['auto', 'top', 'bottom', 'left', 'right'];
+    const directions: ArrowDirection[] = ['forward', 'bidirectional', 'none'];
+    const lineTypes: ConnectorType[] = ['solid', 'dashed'];
+
     return (
       <aside className="properties-panel">
         <h3 className="panel-title">Connector</h3>
-        <p className="prop-label">Type: {connector.lineType}</p>
-        <p className="prop-label">Direction: {connector.arrowDirection}</p>
+
+        <div className="prop-group">
+          <label className="prop-label">Line Style</label>
+          <div className="prop-button-row">
+            {lineTypes.map((t) => (
+              <button
+                key={t}
+                className={`prop-btn ${connector.lineType === t ? 'active' : ''}`}
+                onClick={() => updateConnector({ lineType: t })}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <label className="prop-label">Arrows</label>
+          <div className="prop-button-row">
+            {directions.map((d) => (
+              <button
+                key={d}
+                className={`prop-btn ${connector.arrowDirection === d ? 'active' : ''}`}
+                onClick={() => updateConnector({ arrowDirection: d })}
+              >
+                {d === 'forward' ? 'Forward' : d === 'bidirectional' ? 'Both' : 'None'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <label className="prop-label">Stroke</label>
+          <div className="prop-button-row">
+            {[1, 2].map((w) => (
+              <button
+                key={w}
+                className={`prop-btn ${connector.strokeWidth === w ? 'active' : ''}`}
+                onClick={() => updateConnector({ strokeWidth: w })}
+              >
+                {w}px
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <label className="prop-label">
+            From{fromEl ? ` (${fromEl.text || fromEl.type})` : ''}
+          </label>
+          <div className="prop-button-row">
+            {sides.map((s) => (
+              <button
+                key={s}
+                className={`prop-btn ${(connector.fromSide || 'auto') === s ? 'active' : ''}`}
+                onClick={() => updateConnector({ fromSide: s })}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <label className="prop-label">
+            To{toEl ? ` (${toEl.text || toEl.type})` : ''}
+          </label>
+          <div className="prop-button-row">
+            {sides.map((s) => (
+              <button
+                key={s}
+                className={`prop-btn ${(connector.toSide || 'auto') === s ? 'active' : ''}`}
+                onClick={() => updateConnector({ toSide: s })}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
       </aside>
     );
   }

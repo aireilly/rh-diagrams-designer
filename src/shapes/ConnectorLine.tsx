@@ -1,6 +1,6 @@
 import { Arrow, Line } from 'react-konva';
 import type Konva from 'konva';
-import { Connector, DiagramElement } from '../types';
+import { AnchorSide, Connector, DiagramElement } from '../types';
 import { ARROWHEAD, COLORS } from '../constants';
 import { useDiagram } from '../state/DiagramContext';
 
@@ -9,36 +9,90 @@ interface ConnectorLineProps {
   isSelected: boolean;
 }
 
-function getEdgePoint(
+function getAnchorPoint(
   el: DiagramElement,
-  targetX: number,
-  targetY: number
-): { x: number; y: number } {
+  side: AnchorSide,
+  otherEl: DiagramElement
+): { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' } {
   const cx = el.x + el.width / 2;
   const cy = el.y + el.height / 2;
-  const dx = targetX - cx;
-  const dy = targetY - cy;
 
-  if (Math.abs(dx) === 0 && Math.abs(dy) === 0) {
-    return { x: cx, y: cy };
+  if (side === 'auto') {
+    const ocx = otherEl.x + otherEl.width / 2;
+    const ocy = otherEl.y + otherEl.height / 2;
+    const dx = ocx - cx;
+    const dy = ocy - cy;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      side = dx > 0 ? 'right' : 'left';
+    } else {
+      side = dy > 0 ? 'bottom' : 'top';
+    }
   }
 
-  const absDx = Math.abs(dx);
-  const absDy = Math.abs(dy);
-  const hw = el.width / 2;
-  const hh = el.height / 2;
+  switch (side) {
+    case 'top':
+      return { x: cx, y: el.y, dir: 'up' };
+    case 'bottom':
+      return { x: cx, y: el.y + el.height, dir: 'down' };
+    case 'left':
+      return { x: el.x, y: cy, dir: 'left' };
+    case 'right':
+      return { x: el.x + el.width, y: cy, dir: 'right' };
+  }
+}
 
-  let ix: number, iy: number;
+const STUB_LENGTH = 20;
 
-  if (absDx / hw > absDy / hh) {
-    ix = cx + (dx > 0 ? hw : -hw);
-    iy = cy + (dy * hw) / absDx;
+function buildOrthogonalPath(
+  from: { x: number; y: number; dir: string },
+  to: { x: number; y: number; dir: string }
+): number[] {
+  // Extend stub segments out from each anchor
+  const s = STUB_LENGTH;
+  let sx = from.x, sy = from.y;
+  let ex = to.x, ey = to.y;
+
+  if (from.dir === 'right') sx += s;
+  else if (from.dir === 'left') sx -= s;
+  else if (from.dir === 'down') sy += s;
+  else if (from.dir === 'up') sy -= s;
+
+  if (to.dir === 'right') ex += s;
+  else if (to.dir === 'left') ex -= s;
+  else if (to.dir === 'down') ey += s;
+  else if (to.dir === 'up') ey -= s;
+
+  const isFromHorizontal = from.dir === 'left' || from.dir === 'right';
+  const isToHorizontal = to.dir === 'left' || to.dir === 'right';
+
+  const points = [from.x, from.y];
+
+  if (isFromHorizontal && isToHorizontal) {
+    // Both exit horizontally: route via midpoint X, or if stubs don't cross, use midpoint Y
+    const midX = (sx + ex) / 2;
+    points.push(midX, from.y);
+    points.push(midX, to.y);
+  } else if (!isFromHorizontal && !isToHorizontal) {
+    // Both exit vertically: route via midpoint Y
+    const midY = (sy + ey) / 2;
+    points.push(from.x, midY);
+    points.push(to.x, midY);
+  } else if (isFromHorizontal && !isToHorizontal) {
+    // From exits horizontally, To exits vertically
+    points.push(sx, from.y);
+    points.push(sx, ey);
+    points.push(to.x, ey);
   } else {
-    iy = cy + (dy > 0 ? hh : -hh);
-    ix = cx + (dx * hh) / absDy;
+    // From exits vertically, To exits horizontally
+    points.push(from.x, sy);
+    points.push(ex, sy);
+    points.push(ex, to.y);
   }
 
-  return { x: ix, y: iy };
+  points.push(to.x, to.y);
+
+  return points;
 }
 
 export default function ConnectorLine({ connector, isSelected }: ConnectorLineProps) {
@@ -49,34 +103,13 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
 
   if (!fromEl || !toEl) return null;
 
-  const fromCenter = { x: fromEl.x + fromEl.width / 2, y: fromEl.y + fromEl.height / 2 };
-  const toCenter = { x: toEl.x + toEl.width / 2, y: toEl.y + toEl.height / 2 };
+  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
+  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
 
-  const fromEdge = getEdgePoint(fromEl, toCenter.x, toCenter.y);
-  const toEdge = getEdgePoint(toEl, fromCenter.x, fromCenter.y);
-
-  // Apply arrowhead padding
-  const angle = Math.atan2(toEdge.y - fromEdge.y, toEdge.x - fromEdge.x);
-  const padX = Math.cos(angle) * ARROWHEAD.PADDING;
-  const padY = Math.sin(angle) * ARROWHEAD.PADDING;
-
-  const endX = toEdge.x - padX;
-  const endY = toEdge.y - padY;
-
-  let startX = fromEdge.x;
-  let startY = fromEdge.y;
-
-  if (connector.arrowDirection === 'bidirectional') {
-    startX = fromEdge.x + padX;
-    startY = fromEdge.y + padY;
-  }
-
-  const points = connector.isElbow
-    ? [startX, startY, startX, endY, endX, endY]
-    : [startX, startY, endX, endY];
+  const points = buildOrthogonalPath(from, to);
 
   const dashEnabled = connector.lineType === 'dashed';
-  const dash = dashEnabled ? [2, 2] : undefined;
+  const dash = dashEnabled ? [4, 4] : undefined;
   const arrowSize = ARROWHEAD.SIZE_X * 5;
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -86,11 +119,11 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
 
   const commonProps = {
     points,
-    stroke: connector.stroke || COLORS.DARK_GRAY,
-    strokeWidth: connector.strokeWidth,
+    stroke: isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY),
+    strokeWidth: isSelected ? 2 : connector.strokeWidth,
     dash,
     dashEnabled,
-    hitStrokeWidth: 10,
+    hitStrokeWidth: 12,
     onClick: handleClick,
   };
 
@@ -108,7 +141,7 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
       {...commonProps}
       pointerLength={arrowSize}
       pointerWidth={arrowSize}
-      fill={connector.stroke || COLORS.DARK_GRAY}
+      fill={isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY)}
       strokeScaleEnabled={false}
     />
   );

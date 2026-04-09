@@ -1,4 +1,4 @@
-import { DiagramState, DiagramElement, Connector } from '../types';
+import { DiagramState, DiagramElement, Connector, AnchorSide } from '../types';
 import { CANVAS, FONT_FAMILY, CALLOUT_CIRCLE, COLORS, ARROWHEAD } from '../constants';
 
 function escapeXml(str: string): string {
@@ -44,22 +44,80 @@ function renderText(el: DiagramElement): string {
   return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${FONT_FAMILY}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`;
 }
 
+function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramElement): { x: number; y: number; dir: string } {
+  const cx = el.x + el.width / 2;
+  const cy = el.y + el.height / 2;
+
+  if (side === 'auto') {
+    const ocx = otherEl.x + otherEl.width / 2;
+    const ocy = otherEl.y + otherEl.height / 2;
+    const dx = ocx - cx;
+    const dy = ocy - cy;
+    side = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top');
+  }
+
+  switch (side) {
+    case 'top': return { x: cx, y: el.y, dir: 'up' };
+    case 'bottom': return { x: cx, y: el.y + el.height, dir: 'down' };
+    case 'left': return { x: el.x, y: cy, dir: 'left' };
+    case 'right': return { x: el.x + el.width, y: cy, dir: 'right' };
+  }
+}
+
+function buildSvgOrthogonalPath(from: { x: number; y: number; dir: string }, to: { x: number; y: number; dir: string }): string {
+  const s = 20;
+  let sx = from.x, sy = from.y, ex = to.x, ey = to.y;
+  if (from.dir === 'right') sx += s; else if (from.dir === 'left') sx -= s;
+  else if (from.dir === 'down') sy += s; else if (from.dir === 'up') sy -= s;
+  if (to.dir === 'right') ex += s; else if (to.dir === 'left') ex -= s;
+  else if (to.dir === 'down') ey += s; else if (to.dir === 'up') ey -= s;
+
+  const isFromH = from.dir === 'left' || from.dir === 'right';
+  const isToH = to.dir === 'left' || to.dir === 'right';
+
+  let d = `M ${from.x} ${from.y}`;
+  if (isFromH && isToH) {
+    const midX = (sx + ex) / 2;
+    d += ` L ${midX} ${from.y} L ${midX} ${to.y}`;
+  } else if (!isFromH && !isToH) {
+    const midY = (sy + ey) / 2;
+    d += ` L ${from.x} ${midY} L ${to.x} ${midY}`;
+  } else if (isFromH) {
+    d += ` L ${sx} ${from.y} L ${sx} ${ey} L ${to.x} ${ey}`;
+  } else {
+    d += ` L ${from.x} ${sy} L ${ex} ${sy} L ${ex} ${to.y}`;
+  }
+  d += ` L ${to.x} ${to.y}`;
+  return d;
+}
+
 function renderConnector(connector: Connector, elements: DiagramElement[]): string {
   const fromEl = elements.find((e) => e.id === connector.fromId);
   const toEl = elements.find((e) => e.id === connector.toId);
   if (!fromEl || !toEl) return '';
 
-  const fromCx = fromEl.x + fromEl.width / 2;
-  const fromCy = fromEl.y + fromEl.height / 2;
-  const toCx = toEl.x + toEl.width / 2;
-  const toCy = toEl.y + toEl.height / 2;
+  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
+  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
+  const pathD = buildSvgOrthogonalPath(from, to);
 
   const markerId = `arrow-${connector.id}`;
-  const dashAttr = connector.lineType === 'dashed' ? ' stroke-dasharray="2,2"' : '';
+  const dashAttr = connector.lineType === 'dashed' ? ' stroke-dasharray="4,4"' : '';
+  const color = connector.stroke || COLORS.DARK_GRAY;
 
   const parts: string[] = [];
-  parts.push(`  <defs><marker id="${markerId}" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${ARROWHEAD.SIZE_X * 5}" markerHeight="${ARROWHEAD.SIZE_Y * 5}" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="${connector.stroke || COLORS.DARK_GRAY}" /></marker></defs>`);
-  parts.push(`  <line x1="${fromCx}" y1="${fromCy}" x2="${toCx}" y2="${toCy}" stroke="${connector.stroke || COLORS.DARK_GRAY}" stroke-width="${connector.strokeWidth}" marker-end="url(#${markerId})"${dashAttr} />`);
+
+  if (connector.arrowDirection !== 'none') {
+    parts.push(`  <defs><marker id="${markerId}" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="${ARROWHEAD.SIZE_X * 5}" markerHeight="${ARROWHEAD.SIZE_Y * 5}" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="${color}" /></marker></defs>`);
+  }
+
+  let markerAttr = '';
+  if (connector.arrowDirection === 'forward') {
+    markerAttr = ` marker-end="url(#${markerId})"`;
+  } else if (connector.arrowDirection === 'bidirectional') {
+    markerAttr = ` marker-start="url(#${markerId})" marker-end="url(#${markerId})"`;
+  }
+
+  parts.push(`  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${connector.strokeWidth}"${markerAttr}${dashAttr} />`);
 
   return parts.join('\n');
 }

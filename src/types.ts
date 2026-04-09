@@ -1,6 +1,7 @@
 export type ShapeType = 'rect' | 'circle' | 'icon' | 'text';
 export type ConnectorType = 'solid' | 'dashed';
 export type ArrowDirection = 'forward' | 'bidirectional' | 'none';
+export type AnchorSide = 'auto' | 'top' | 'bottom' | 'left' | 'right';
 export type FontWeight = 'bold' | 'medium';
 export type BoxVariant = 'filled' | 'outlined' | 'gray' | 'white';
 
@@ -43,7 +44,8 @@ export interface Connector {
   strokeWidth: number;
   stroke: string;
   points: number[];
-  isElbow: boolean;
+  fromSide: AnchorSide;
+  toSide: AnchorSide;
 }
 
 export interface DiagramState {
