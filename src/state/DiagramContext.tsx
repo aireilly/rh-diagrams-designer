@@ -1,6 +1,6 @@
-import { createContext, useContext, useReducer, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react';
 import { DiagramAction, DiagramState, DiagramElement, Connector } from '../types';
-import { historyReducer, createInitialHistoryState } from './historyReducer';
+import { historyReducer, createInitialHistoryState, saveStateToStorage } from './historyReducer';
 
 interface DiagramContextValue {
   state: DiagramState;
@@ -21,6 +21,11 @@ const DiagramContext = createContext<DiagramContextValue | null>(null);
 
 export function DiagramProvider({ children }: { children: ReactNode }) {
   const [history, dispatch] = useReducer(historyReducer, undefined, createInitialHistoryState);
+
+  // Persist state to localStorage on every change
+  useEffect(() => {
+    saveStateToStorage(history.present);
+  }, [history.present]);
 
   const addElement = useCallback((element: DiagramElement) => {
     dispatch({ type: 'ADD_ELEMENT', element });

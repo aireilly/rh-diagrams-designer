@@ -106,129 +106,6 @@ function createTextElement(x: number, y: number): DiagramElement {
   };
 }
 
-function createNicComponents(startX: number, startY: number): DiagramElement[] {
-  const rowH = 30;
-  const gap = 5;
-  const bridgeW = 120;
-  const nicW = 80;
-  const bondW = 30;
-  const containerPad = 10;
-  const innerW = bridgeW + nicW + gap + bondW;
-  const totalRows = 3;
-  const innerH = totalRows * rowH + (totalRows - 1) * gap;
-  const standaloneNicW = nicW + gap + bondW;
-
-  const elements: DiagramElement[] = [];
-
-  // Outer container
-  elements.push({
-    id: generateId('nic-container'),
-    type: 'rect',
-    x: startX,
-    y: startY,
-    width: innerW + containerPad * 2,
-    height: innerH + rowH + gap + containerPad * 2,
-    rotation: 0,
-    fill: COLORS.GRAY_20,
-    stroke: COLORS.GRAY_50,
-    strokeWidth: 1,
-    text: 'NIC',
-    fontSize: 14,
-    fontWeight: 'bold',
-    textColor: COLORS.DARK_GRAY,
-    groupId: null,
-  });
-
-  const innerX = startX + containerPad;
-  const innerY = startY + containerPad;
-
-  // 3 rows of Bridge + NIC
-  for (let i = 0; i < totalRows; i++) {
-    const rowY = innerY + i * (rowH + gap);
-
-    // Bridge
-    elements.push({
-      id: generateId('nic-bridge'),
-      type: 'rect',
-      x: innerX,
-      y: rowY,
-      width: bridgeW,
-      height: rowH,
-      rotation: 0,
-      fill: COLORS.BLUE_50,
-      stroke: '',
-      strokeWidth: 0,
-      text: 'Bridge',
-      fontSize: 12,
-      fontWeight: 'bold',
-      textColor: COLORS.WHITE,
-      textPosition: 'center',
-      groupId: null,
-    });
-
-    // NIC (purple)
-    elements.push({
-      id: generateId('nic-nic'),
-      type: 'rect',
-      x: innerX + bridgeW + gap,
-      y: rowY,
-      width: nicW,
-      height: rowH,
-      rotation: 0,
-      fill: COLORS.PURPLE_50,
-      stroke: '',
-      strokeWidth: 0,
-      text: 'NIC',
-      fontSize: 12,
-      fontWeight: 'bold',
-      textColor: COLORS.WHITE,
-      textPosition: 'center',
-      groupId: null,
-    });
-  }
-
-  // Bond vertical bar
-  elements.push({
-    id: generateId('nic-bond'),
-    type: 'rect',
-    x: innerX + bridgeW + nicW + gap * 2,
-    y: innerY,
-    width: bondW,
-    height: innerH,
-    rotation: 0,
-    fill: COLORS.GRAY_50,
-    stroke: '',
-    strokeWidth: 0,
-    text: 'Bond',
-    fontSize: 11,
-    fontWeight: 'bold',
-    textColor: COLORS.WHITE,
-    textPosition: 'center',
-    groupId: null,
-  });
-
-  // Standalone NIC at bottom
-  elements.push({
-    id: generateId('nic-standalone'),
-    type: 'rect',
-    x: innerX + bridgeW + gap,
-    y: innerY + innerH + gap,
-    width: standaloneNicW,
-    height: rowH,
-    rotation: 0,
-    fill: COLORS.GRAY_50,
-    stroke: '',
-    strokeWidth: 0,
-    text: 'NIC',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textColor: COLORS.WHITE,
-    textPosition: 'center',
-    groupId: null,
-  });
-
-  return elements;
-}
 
 function IconCategorySections({ onAddIcon }: { onAddIcon: (id: string) => void }) {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
@@ -308,12 +185,6 @@ export default function ComponentPanel() {
     addElement(createTextElement(x, y));
   };
 
-  const handleAddNic = () => {
-    const elements = createNicComponents(50, 50);
-    for (const el of elements) {
-      addElement(el);
-    }
-  };
 
   const handleSelectConnectorTool = (tool: string) => {
     dispatch({ type: 'SET_TOOL', tool: tool as 'connector-solid' | 'connector-dashed' });
@@ -358,12 +229,6 @@ export default function ComponentPanel() {
         </button>
       </section>
 
-      <section className="panel-section">
-        <h4 className="section-title">Network</h4>
-        <button className="component-btn" onClick={handleAddNic}>
-          <span>NIC / Bridge / Bond</span>
-        </button>
-      </section>
 
       <section className="panel-section">
         <h4 className="section-title">Connectors</h4>

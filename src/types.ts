@@ -36,6 +36,7 @@ export interface DiagramElement {
   iconId?: string;
   groupId?: string | null;
   stacked?: boolean;
+  cornerRadius?: number;
 }
 
 export interface Connector {

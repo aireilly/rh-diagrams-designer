@@ -1,6 +1,8 @@
 import { DiagramState, DiagramAction, HistoryState } from '../types';
 import { CANVAS } from '../constants';
 
+const STORAGE_KEY = 'rh-diagram-designer-state';
+
 function createInitialDiagramState(): DiagramState {
   return {
     elements: [],
@@ -13,10 +15,35 @@ function createInitialDiagramState(): DiagramState {
   };
 }
 
+export function saveStateToStorage(state: DiagramState): void {
+  try {
+    const { selectedIds: _, tool: __, ...persistable } = state;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
+  } catch {
+    // Storage full or unavailable — silently ignore
+  }
+}
+
+function loadStateFromStorage(): DiagramState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    return {
+      ...createInitialDiagramState(),
+      ...saved,
+      selectedIds: [],
+      tool: 'select',
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function createInitialHistoryState(): HistoryState {
   return {
     past: [],
-    present: createInitialDiagramState(),
+    present: loadStateFromStorage() || createInitialDiagramState(),
     future: [],
   };
 }

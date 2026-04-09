@@ -18,14 +18,15 @@ function renderRect(el: DiagramElement): string {
     parts.push(`  <polyline points="${r + 5},${el.y + 5} ${r + 5},${b + 5} ${el.x + 5},${b + 5}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
   }
 
+  const rx = el.cornerRadius ? ` rx="${el.cornerRadius}" ry="${el.cornerRadius}"` : '';
   if (el.fill) {
-    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="${el.fill}" />`);
+    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="${el.fill}" />`);
   }
   if (el.stroke) {
-    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="none" stroke="${el.stroke}" stroke-width="${el.strokeWidth}" />`);
+    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="none" stroke="${el.stroke}" stroke-width="${el.strokeWidth}" />`);
   }
   if (!el.fill && !el.stroke) {
-    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" fill="none" />`);
+    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="none" />`);
   }
 
   if (el.text) {

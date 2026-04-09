@@ -135,7 +135,7 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
         fill={element.fill || undefined}
         stroke={element.stroke || undefined}
         strokeWidth={element.strokeWidth}
-        cornerRadius={0}
+        cornerRadius={element.cornerRadius || 0}
       />
       <Text
         ref={textRef}

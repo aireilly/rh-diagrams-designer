@@ -6,7 +6,7 @@ export const COLORS = {
   DARK_GRAY: '#262626',
   MEDIUM_GRAY: '#595959',
   LIGHT_GRAY: '#e5e5e5',
-  ICON_GRAY: '#7f7f7f',
+  ICON_GRAY: '#151515',
   WHITE: '#ffffff',
   WATERMARK_GRAY: '#ececec',
   // Blues
