@@ -22,7 +22,7 @@
   background: #ffffff;
   cursor: pointer;
   font-family: 'Red Hat Text', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #262626;
   white-space: nowrap;
@@ -56,7 +56,7 @@
 }
 
 .toolbar-zoom-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #262626;
   min-width: 40px;
