@@ -1,4 +1,4 @@
-import { Group, Path, Text, Rect } from 'react-konva';
+import { Group, Shape, Text, Rect } from 'react-konva';
 import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
@@ -66,13 +66,20 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
         height={totalHeight}
         fill="transparent"
       />
-      <Path
-        data={icon.path}
-        fill={COLORS.ICON_GRAY}
+      <Shape
         x={(totalWidth - scaledWidth) / 2}
         y={0}
-        scaleX={scaledWidth / vbW}
-        scaleY={scaledHeight / vbH}
+        width={scaledWidth}
+        height={scaledHeight}
+        sceneFunc={(ctx) => {
+          const nativeCtx = (ctx as unknown as { _context: CanvasRenderingContext2D })._context;
+          nativeCtx.save();
+          nativeCtx.scale(scaledWidth / vbW, scaledHeight / vbH);
+          const p = new Path2D(icon.path);
+          nativeCtx.fillStyle = COLORS.ICON_GRAY;
+          nativeCtx.fill(p, 'evenodd');
+          nativeCtx.restore();
+        }}
         listening={false}
       />
       <Text
