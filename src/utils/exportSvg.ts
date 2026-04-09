@@ -13,8 +13,9 @@ function renderRect(el: DiagramElement): string {
   const parts: string[] = [];
 
   if (el.stacked) {
-    parts.push(`  <rect x="${el.x + 10}" y="${el.y + 10}" width="${el.width}" height="${el.height}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
-    parts.push(`  <rect x="${el.x + 5}" y="${el.y + 5}" width="${el.width}" height="${el.height}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
+    const r = el.x + el.width, b = el.y + el.height;
+    parts.push(`  <polyline points="${r + 10},${el.y + 10} ${r + 10},${b + 10} ${el.x + 10},${b + 10}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
+    parts.push(`  <polyline points="${r + 5},${el.y + 5} ${r + 5},${b + 5} ${el.x + 5},${b + 5}" fill="none" stroke="${COLORS.GRAY_95}" stroke-width="1" />`);
   }
 
   if (el.fill) {

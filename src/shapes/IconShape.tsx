@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Group, Image, Text, Rect } from 'react-konva';
+import { Group, Image, Text, Rect, Line } from 'react-konva';
 import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
@@ -79,8 +79,8 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
     <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
       {element.stacked && (
         <>
-          <Rect x={10} y={10} width={totalWidth} height={totalHeight} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
-          <Rect x={5} y={5} width={totalWidth} height={totalHeight} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Line points={[totalWidth + 10, 10, totalWidth + 10, totalHeight + 10, 10, totalHeight + 10]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Line points={[totalWidth + 5, 5, totalWidth + 5, totalHeight + 5, 5, totalHeight + 5]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
         </>
       )}
       <Rect

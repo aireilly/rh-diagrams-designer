@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Group, Rect, Text } from 'react-konva';
+import { Group, Rect, Text, Line } from 'react-konva';
 import type Konva from 'konva';
 import { DiagramElement, TextPosition } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
@@ -125,8 +125,8 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
     >
       {element.stacked && (
         <>
-          <Rect x={10} y={10} width={element.width} height={element.height} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
-          <Rect x={5} y={5} width={element.width} height={element.height} fill="none" stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Line points={[element.width + 10, 10, element.width + 10, element.height + 10, 10, element.height + 10]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
+          <Line points={[element.width + 5, 5, element.width + 5, element.height + 5, 5, element.height + 5]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
         </>
       )}
       <Rect
