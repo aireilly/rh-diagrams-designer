@@ -180,7 +180,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   return (
     <div className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}`}>
       <Stage
-        ref={stageRef}
+        ref={stageRef as React.RefObject<Konva.Stage>}
         width={width * state.zoom}
         height={height * state.zoom}
         scaleX={state.zoom}
