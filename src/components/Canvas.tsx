@@ -47,7 +47,7 @@ interface CanvasProps {
 }
 
 export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
-  const { state, setSelection, deleteSelected, undo, redo, addConnector, moveElement, dispatch } = useDiagram();
+  const { state, setSelection, deleteSelected, undo, redo, addConnector, addElement, moveElement, dispatch } = useDiagram();
   const internalStageRef = useRef<Konva.Stage>(null);
   const stageRef = externalStageRef || internalStageRef;
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -55,6 +55,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   const [selRect, setSelRect] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const isDraggingSelection = useRef(false);
   const justFinishedDragSelect = useRef(false);
+  const clipboard = useRef<typeof state.elements>([]);
 
   const isConnectorMode = state.tool === 'connector-solid' || state.tool === 'connector-dashed';
   const width = CANVAS.WIDTH;
@@ -213,10 +214,40 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         e.preventDefault();
         redo();
       }
+      if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const allIds = [
+          ...state.elements.map((el) => el.id),
+          ...state.connectors.map((c) => c.id),
+        ];
+        setSelection(allIds);
+      }
+      if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        clipboard.current = state.elements.filter((el) => state.selectedIds.includes(el.id));
+      }
+      if (e.key === 'x' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        clipboard.current = state.elements.filter((el) => state.selectedIds.includes(el.id));
+        deleteSelected();
+      }
+      if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (clipboard.current.length === 0) return;
+        const newIds: string[] = [];
+        for (const el of clipboard.current) {
+          const newId = `${el.type}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+          newIds.push(newId);
+          addElement({ ...el, id: newId, x: el.x + 20, y: el.y + 20 });
+        }
+        setSelection(newIds);
+        // Shift clipboard offset so repeated pastes cascade
+        clipboard.current = clipboard.current.map((el) => ({ ...el, x: el.x + 20, y: el.y + 20 }));
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deleteSelected, undo, redo, state.selectedIds, state.elements, moveElement, dispatch]);
+  }, [deleteSelected, undo, redo, state.selectedIds, state.elements, state.connectors, moveElement, addElement, setSelection, dispatch]);
 
   // Update transformer selection
   useEffect(() => {
