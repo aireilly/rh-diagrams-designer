@@ -44,7 +44,15 @@ body {
 }
 
 .title-bar-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   letter-spacing: 0.3px;
+}
+
+.title-bar-logo {
+  height: 24px;
+  width: auto;
 }
 
 .title-bar-link {

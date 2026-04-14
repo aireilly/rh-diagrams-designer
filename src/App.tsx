@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import type Konva from 'konva';
 import './App.css';
+import redhatLogo from './img/redhat-favicon.png';
 import { DiagramProvider } from './state/DiagramContext';
 import Canvas from './components/Canvas';
 import ComponentPanel from './components/ComponentPanel';
@@ -17,7 +18,10 @@ function App() {
     <DiagramProvider>
       <div className="app">
         <header className="title-bar">
-          <span className="title-bar-name">Red Hat Diagram Creator</span>
+          <span className="title-bar-name">
+            <img src={redhatLogo} alt="Red Hat" className="title-bar-logo" />
+            Red Hat Diagram Creator
+          </span>
           <a
             className="title-bar-link"
             href="https://github.com/aireilly/rh-diagrams-designer"
