@@ -12,27 +12,12 @@ interface TextLabelProps {
 }
 
 export default function TextLabel({ element, isSelected }: TextLabelProps) {
-  const { moveElement, setSelection, updateElement, state } = useDiagram();
+  const { moveElement, updateElement, state } = useDiagram();
   const textRef = useRef<Konva.Text>(null);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
     moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
-  };
-
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-      return; // Let click bubble to stage for connector wiring
-    }
-    e.cancelBubble = true;
-    if (e.evt.shiftKey) {
-      const ids = state.selectedIds.includes(element.id)
-        ? state.selectedIds.filter((id) => id !== element.id)
-        : [...state.selectedIds, element.id];
-      setSelection(ids);
-    } else {
-      setSelection([element.id]);
-    }
   };
 
   const handleDblClick = () => {
@@ -79,7 +64,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
   };
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
       {isSelected && (
         <Rect
           width={element.width}

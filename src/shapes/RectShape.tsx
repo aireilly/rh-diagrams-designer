@@ -24,7 +24,7 @@ interface RectShapeProps {
 }
 
 export default function RectShape({ element, isSelected }: RectShapeProps) {
-  const { updateElement, moveElement, setSelection, state } = useDiagram();
+  const { updateElement, moveElement, state } = useDiagram();
   const groupRef = useRef<Konva.Group>(null);
   const textRef = useRef<Konva.Text>(null);
 
@@ -33,21 +33,6 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
     const x = snapToGrid(e.target.x(), increment);
     const y = snapToGrid(e.target.y(), increment);
     moveElement(element.id, x, y);
-  };
-
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-      return; // Let click bubble to stage for connector wiring
-    }
-    e.cancelBubble = true;
-    if (e.evt.shiftKey) {
-      const ids = state.selectedIds.includes(element.id)
-        ? state.selectedIds.filter((id) => id !== element.id)
-        : [...state.selectedIds, element.id];
-      setSelection(ids);
-    } else {
-      setSelection([element.id]);
-    }
   };
 
   const handleTransformEnd = () => {
@@ -118,7 +103,6 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
       x={element.x}
       y={element.y}
       draggable
-      onClick={handleClick}
       onDblClick={handleDblClick}
       onDragEnd={handleDragEnd}
       onTransformEnd={handleTransformEnd}

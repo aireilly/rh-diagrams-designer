@@ -38,27 +38,12 @@ interface IconShapeProps {
 }
 
 export default function IconShape({ element, isSelected }: IconShapeProps) {
-  const { moveElement, setSelection, state } = useDiagram();
+  const { moveElement, state } = useDiagram();
   const icon = ICONS.find((i) => i.id === element.iconId);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
     moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
-  };
-
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-      return;
-    }
-    e.cancelBubble = true;
-    if (e.evt.shiftKey) {
-      const ids = state.selectedIds.includes(element.id)
-        ? state.selectedIds.filter((id) => id !== element.id)
-        : [...state.selectedIds, element.id];
-      setSelection(ids);
-    } else {
-      setSelection([element.id]);
-    }
   };
 
   if (!icon) return null;
@@ -76,13 +61,18 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   const iconImage = useIconImage(icon.id, icon.viewBox, icon.path, scaledWidth, scaledHeight, COLORS.ICON_GRAY);
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
       {element.stacked && (
         <>
           <Line points={[totalWidth + 10, 10, totalWidth + 10, totalHeight + 10, 10, totalHeight + 10]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
           <Line points={[totalWidth + 5, 5, totalWidth + 5, totalHeight + 5, 5, totalHeight + 5]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
         </>
       )}
+      <Rect
+        width={totalWidth}
+        height={totalHeight}
+        fill="transparent"
+      />
       {iconImage && (
         <Image
           image={iconImage}
@@ -90,6 +80,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
           y={0}
           width={scaledWidth}
           height={scaledHeight}
+          listening={false}
         />
       )}
       <Text
@@ -102,6 +93,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
         fill={COLORS.DARK_GRAY}
         align="center"
         wrap="word"
+        listening={false}
       />
       {isSelected && (
         <Rect

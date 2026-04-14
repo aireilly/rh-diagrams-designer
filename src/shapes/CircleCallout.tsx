@@ -11,30 +11,15 @@ interface CircleCalloutProps {
 }
 
 export default function CircleCallout({ element, isSelected }: CircleCalloutProps) {
-  const { moveElement, setSelection, state } = useDiagram();
+  const { moveElement, state } = useDiagram();
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
     moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
   };
 
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-      return; // Let click bubble to stage for connector wiring
-    }
-    e.cancelBubble = true;
-    if (e.evt.shiftKey) {
-      const ids = state.selectedIds.includes(element.id)
-        ? state.selectedIds.filter((id) => id !== element.id)
-        : [...state.selectedIds, element.id];
-      setSelection(ids);
-    } else {
-      setSelection([element.id]);
-    }
-  };
-
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
       <Circle
         radius={CALLOUT_CIRCLE.RADIUS}
         fill={CALLOUT_CIRCLE.FILL}

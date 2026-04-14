@@ -75,30 +75,30 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         return;
       }
 
-      // Check if a connector tool is active and a shape was clicked
-      if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
-        // Walk up the node tree to find the Group with a matching element ID
-        let node: Konva.Node | null = e.target;
-        let el = null;
-        while (node && node !== e.target.getStage()) {
-          const id = node.id();
-          if (id) {
-            el = state.elements.find((e) => e.id === id);
-            if (el) break;
-          }
-          node = node.parent;
+      // Walk up the node tree to find the Group with a matching element ID
+      let node: Konva.Node | null = e.target;
+      let clickedElId: string | null = null;
+      while (node && node !== e.target.getStage()) {
+        const id = node.id();
+        if (id && state.elements.some((el) => el.id === id)) {
+          clickedElId = id;
+          break;
         }
-        if (!el) return;
+        node = node.parent;
+      }
 
+      // Connector mode
+      if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
+        if (!clickedElId) return;
         if (!pendingFrom) {
-          setPendingFrom(el.id);
-          setSelection([el.id]); // Highlight the source shape
-        } else if (pendingFrom !== el.id) {
+          setPendingFrom(clickedElId);
+          setSelection([clickedElId]);
+        } else if (pendingFrom !== clickedElId) {
           const lineType = state.tool === 'connector-solid' ? 'solid' : 'dashed';
           addConnector({
             id: `conn-${Date.now()}`,
             fromId: pendingFrom,
-            toId: el.id,
+            toId: clickedElId,
             lineType,
             arrowDirection: 'forward',
             strokeWidth: 1,
@@ -110,9 +110,40 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
           setPendingFrom(null);
           dispatch({ type: 'SET_TOOL', tool: 'select' });
         }
+        return;
+      }
+
+      // Normal selection mode (connectors handle their own clicks)
+      if (!clickedElId) return;
+
+      if (e.evt.shiftKey) {
+        // Shift-click: toggle selection
+        const ids = state.selectedIds.includes(clickedElId)
+          ? state.selectedIds.filter((id) => id !== clickedElId)
+          : [...state.selectedIds, clickedElId];
+        setSelection(ids);
+      } else if (state.selectedIds.length === 1 && state.selectedIds[0] === clickedElId) {
+        // Clicking the already-selected element: cycle to next overlapping element
+        const stage = e.target.getStage();
+        const pointer = stage?.getPointerPosition();
+        if (pointer) {
+          const x = pointer.x / state.zoom;
+          const y = pointer.y / state.zoom;
+          const overlapping = state.elements.filter((el) =>
+            x >= el.x && x <= el.x + el.width &&
+            y >= el.y && y <= el.y + el.height
+          );
+          if (overlapping.length > 1) {
+            const currentIndex = overlapping.findIndex((el) => el.id === clickedElId);
+            const nextIndex = (currentIndex + 1) % overlapping.length;
+            setSelection([overlapping[nextIndex].id]);
+          }
+        }
+      } else {
+        setSelection([clickedElId]);
       }
     },
-    [setSelection, state.tool, state.elements, pendingFrom, addConnector, dispatch]
+    [setSelection, state.tool, state.elements, state.selectedIds, state.zoom, pendingFrom, addConnector, dispatch]
   );
 
   const handleMouseDown = useCallback(
