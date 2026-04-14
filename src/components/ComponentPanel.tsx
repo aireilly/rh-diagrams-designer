@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDiagram } from '../state/DiagramContext';
-import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE } from '../constants';
+import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE, GRID } from '../constants';
 import { DiagramElement } from '../types';
 import { ICONS } from '../shapes/iconPaths';
 import './ComponentPanel.css';
@@ -173,10 +173,10 @@ export default function ComponentPanel() {
       .filter((n) => !isNaN(n));
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
 
-    // If a shape is selected, position so the callout center sits on the shape's top-left corner
+    // If a shape is selected, position callout one grid step above and left of the shape's top-left corner
     const selectedEl = state.elements.find((el) => el.id === state.selectedIds[0]);
-    const x = selectedEl ? selectedEl.x : 50;
-    const y = selectedEl ? selectedEl.y : 50;
+    const x = selectedEl ? selectedEl.x - GRID.MINOR : 50;
+    const y = selectedEl ? selectedEl.y - GRID.MINOR : 50;
 
     addElement(createCircleElement(nextNumber, x, y));
   };
