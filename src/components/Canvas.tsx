@@ -230,6 +230,25 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         clipboard.current = state.elements.filter((el) => state.selectedIds.includes(el.id));
         deleteSelected();
       }
+      if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const selectedElementIds = state.selectedIds.filter((id) =>
+          state.elements.some((el) => el.id === id)
+        );
+        if (selectedElementIds.length < 2) return;
+
+        const selectedElements = state.elements.filter((el) => selectedElementIds.includes(el.id));
+        const groupIds = new Set(selectedElements.map((el) => el.groupId).filter(Boolean));
+
+        if (groupIds.size === 1) {
+          // All selected share one group — ungroup
+          dispatch({ type: 'UNGROUP_ELEMENTS', groupId: [...groupIds][0] as string });
+        } else {
+          // Group selected elements
+          const groupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+          dispatch({ type: 'GROUP_ELEMENTS', ids: selectedElementIds, groupId });
+        }
+      }
       if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         if (clipboard.current.length === 0) return;
@@ -254,7 +273,10 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     const stage = stageRef.current;
     if (!transformer || !stage) return;
 
+    // Exclude icon elements from transformer — icons are fixed-size
+    const iconIds = new Set(state.elements.filter((el) => el.type === 'icon').map((el) => el.id));
     const selectedNodes = state.selectedIds
+      .filter((id) => !iconIds.has(id))
       .map((id) => stage.findOne(`#${id}`))
       .filter((node): node is Konva.Node => node !== undefined);
 

@@ -115,13 +115,21 @@ export function useShapeClick(elementId: string) {
       }
       e.cancelBubble = true;
 
+      // Expand clicked element to its group members
+      const clickedEl = state.elements.find((el) => el.id === elementId);
+      const groupId = clickedEl?.groupId;
+      const groupIds = groupId
+        ? state.elements.filter((el) => el.groupId === groupId).map((el) => el.id)
+        : [elementId];
+
       if (e.evt.shiftKey) {
-        const ids = state.selectedIds.includes(elementId)
-          ? state.selectedIds.filter((id) => id !== elementId)
-          : [...state.selectedIds, elementId];
+        const allAlreadySelected = groupIds.every((id) => state.selectedIds.includes(id));
+        const ids = allAlreadySelected
+          ? state.selectedIds.filter((id) => !groupIds.includes(id))
+          : [...new Set([...state.selectedIds, ...groupIds])];
         setSelection(ids);
-      } else if (state.selectedIds.length === 1 && state.selectedIds[0] === elementId) {
-        // Already sole selection — cycle to next overlapping element
+      } else if (state.selectedIds.length === 1 && state.selectedIds[0] === elementId && !groupId) {
+        // Already sole selection (ungrouped) — cycle to next overlapping element
         const stage = e.target.getStage();
         const pointer = stage?.getPointerPosition();
         if (pointer) {
@@ -138,7 +146,7 @@ export function useShapeClick(elementId: string) {
           }
         }
       } else {
-        setSelection([elementId]);
+        setSelection(groupIds);
       }
     },
     [elementId, setSelection, state.tool, state.selectedIds, state.elements, state.zoom]

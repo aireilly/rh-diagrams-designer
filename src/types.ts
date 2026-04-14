@@ -77,6 +77,8 @@ export type DiagramAction =
   | { type: 'SET_ZOOM'; zoom: number }
   | { type: 'SET_SNAP'; enabled: boolean }
   | { type: 'SET_TOOL'; tool: ToolType }
+  | { type: 'GROUP_ELEMENTS'; ids: string[]; groupId: string }
+  | { type: 'UNGROUP_ELEMENTS'; groupId: string }
   | { type: 'LOAD_STATE'; state: DiagramState }
   | { type: 'UNDO' }
   | { type: 'REDO' };

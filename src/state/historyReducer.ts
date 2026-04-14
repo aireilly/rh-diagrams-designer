@@ -17,7 +17,8 @@ function createInitialDiagramState(): DiagramState {
 
 export function saveStateToStorage(state: DiagramState): void {
   try {
-    const { selectedIds: _, tool: __, ...persistable } = state;
+    const { selectedIds: _sel, tool: _tool, ...persistable } = state;
+    void _sel; void _tool;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
   } catch {
     // Storage full or unavailable — silently ignore
@@ -91,6 +92,22 @@ function diagramReducer(state: DiagramState, action: DiagramAction): DiagramStat
       return {
         ...state,
         connectors: state.connectors.filter((c) => !action.ids.includes(c.id)),
+      };
+
+    case 'GROUP_ELEMENTS':
+      return {
+        ...state,
+        elements: state.elements.map((el) =>
+          action.ids.includes(el.id) ? { ...el, groupId: action.groupId } : el
+        ),
+      };
+
+    case 'UNGROUP_ELEMENTS':
+      return {
+        ...state,
+        elements: state.elements.map((el) =>
+          el.groupId === action.groupId ? { ...el, groupId: null } : el
+        ),
       };
 
     case 'SET_SELECTION':
