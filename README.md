@@ -4,7 +4,7 @@ A browser-based WYSIWYG block diagram editor for Red Hat technical documentation
 
 Built with React, TypeScript, and Konva.js. Runs entirely client-side.
 
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/f8238b88-30d1-4d60-a069-0c44a5737ffc" />
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/f8238b88-30d1-4d60-a069-0c44a5737ffc" />
 
 ## Features
 
