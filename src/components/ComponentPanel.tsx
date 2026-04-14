@@ -6,15 +6,9 @@ import { ICONS } from '../shapes/iconPaths';
 import './ComponentPanel.css';
 
 const ICON_CATEGORIES: { label: string; prefix: string }[] = [
-  { label: 'Hardware', prefix: 'hardware-' },
-  { label: 'Software', prefix: 'software-' },
-  { label: 'People', prefix: 'people-' },
-  { label: 'Objects', prefix: 'object-' },
-  { label: 'Diagrams', prefix: 'diagram-' },
-  { label: 'Cloud', prefix: 'cloud-' },
-  { label: 'Documents', prefix: 'document-' },
-  { label: 'Arrows', prefix: 'arrows-' },
-  { label: 'Misc', prefix: '' },
+  { label: 'Physical', prefix: 'physical-' },
+  { label: 'Virtual', prefix: 'virtual-' },
+  { label: 'Other', prefix: 'other-' },
 ];
 
 function generateId(prefix: string): string {
@@ -65,15 +59,15 @@ function createCircleElement(number: number, x: number, y: number): DiagramEleme
 
 function createIconElement(iconId: string): DiagramElement {
   const icon = ICONS.find((i) => i.id === iconId);
-  const scaledWidth = (icon?.width ?? 24) * 2;
-  const scaledHeight = (icon?.height ?? 24) * 2;
+  const iconWidth = icon?.width ?? 40;
+  const iconHeight = icon?.height ?? 32;
   const label = icon?.name ?? 'Icon';
   const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
-  const minWordWidth = longestWord.length * 8 + 16;
-  const totalWidth = Math.max(scaledWidth, minWordWidth, 80);
-  const labelLines = Math.ceil(label.length * 7 / totalWidth) + 1;
-  const labelHeight = labelLines * 14 + 4;
-  const totalHeight = scaledHeight + labelHeight + 6;
+  const minWordWidth = longestWord.length * 6.5 + 12;
+  const totalWidth = Math.max(iconWidth, minWordWidth, 60);
+  const labelLines = Math.ceil(label.length * 5.5 / totalWidth) + 1;
+  const labelHeight = labelLines * 13 + 4;
+  const totalHeight = iconHeight + labelHeight + 4;
   return {
     id: generateId('icon'),
     type: 'icon',
@@ -86,9 +80,9 @@ function createIconElement(iconId: string): DiagramElement {
     stroke: '',
     strokeWidth: 0,
     text: icon?.name ?? 'Icon',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'medium',
-    textColor: COLORS.DARK_GRAY,
+    textColor: COLORS.GRAY_95,
     iconId,
     groupId: null,
   };

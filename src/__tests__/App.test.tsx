@@ -15,7 +15,7 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByText('Boxes')).toBeInTheDocument();
     expect(screen.getByText('Callout')).toBeInTheDocument();
-    expect(screen.getByText(/Hardware/)).toBeInTheDocument();
+    expect(screen.getByText(/Physical/)).toBeInTheDocument();
     expect(screen.getByText('Connectors')).toBeInTheDocument();
   });
 });

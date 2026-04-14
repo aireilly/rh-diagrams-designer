@@ -1,5 +1,6 @@
 import { DiagramState, DiagramElement, Connector, AnchorSide, TextPosition } from '../types';
 import { CANVAS, FONT_FAMILY, CALLOUT_CIRCLE, COLORS, ARROWHEAD } from '../constants';
+import { ICONS } from '../shapes/iconPaths';
 
 function escapeXml(str: string): string {
   return str
@@ -138,6 +139,24 @@ function renderConnector(connector: Connector, elements: DiagramElement[]): stri
   return parts.join('\n');
 }
 
+function renderIcon(el: DiagramElement): string {
+  const icon = ICONS.find((i) => i.id === el.iconId);
+  if (!icon) return renderText(el);
+
+  const iconWidth = icon.width;
+  const iconHeight = icon.height;
+  const label = el.text || icon.name;
+  const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
+  const minWordWidth = longestWord.length * 6.5 + 12;
+  const totalWidth = Math.max(iconWidth, minWordWidth, 60);
+  const iconX = el.x + (totalWidth - iconWidth) / 2;
+
+  const parts: string[] = [];
+  parts.push(`  <svg x="${iconX}" y="${el.y}" width="${iconWidth}" height="${iconHeight}" viewBox="${icon.viewBox}">${icon.svgContent}</svg>`);
+  parts.push(`  <text x="${el.x + totalWidth / 2}" y="${el.y + iconHeight + 4 + 11}" text-anchor="middle" font-family="${FONT_FAMILY}" font-size="11" fill="${COLORS.GRAY_95}" style="font-weight:500">${escapeXml(label)}</text>`);
+  return parts.join('\n');
+}
+
 function renderElement(el: DiagramElement): string {
   switch (el.type) {
     case 'rect':
@@ -147,7 +166,7 @@ function renderElement(el: DiagramElement): string {
     case 'text':
       return renderText(el);
     case 'icon':
-      return renderText(el); // Icons export as labeled text for simplicity in v1
+      return renderIcon(el);
     default:
       return '';
   }

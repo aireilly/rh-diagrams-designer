@@ -2,8 +2,6 @@ import { DiagramElement } from '../types';
 import { ICONS } from '../shapes/iconPaths';
 import { CALLOUT_CIRCLE } from '../constants';
 
-const ICON_SCALE = 2;
-
 /**
  * Compute the actual rendered bounding box for an element.
  * Icons recalculate dimensions from icon data; circles use center-based positioning.
@@ -12,15 +10,15 @@ export function getElementBounds(el: DiagramElement): { x: number; y: number; wi
   if (el.type === 'icon' && el.iconId) {
     const icon = ICONS.find((i) => i.id === el.iconId);
     if (icon) {
-      const scaledWidth = icon.width * ICON_SCALE;
-      const scaledHeight = icon.height * ICON_SCALE;
+      const iconWidth = icon.width;
+      const iconHeight = icon.height;
       const label = el.text || icon.name;
       const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
-      const minWordWidth = longestWord.length * 8 + 16;
-      const totalWidth = Math.max(scaledWidth, minWordWidth, 80);
-      const labelLines = Math.ceil(label.length * 7 / totalWidth) + 1;
-      const labelHeight = labelLines * 14 + 4;
-      const totalHeight = scaledHeight + labelHeight + 6;
+      const minWordWidth = longestWord.length * 6.5 + 12;
+      const totalWidth = Math.max(iconWidth, minWordWidth, 60);
+      const labelLines = Math.ceil(label.length * 5.5 / totalWidth) + 1;
+      const labelHeight = labelLines * 13 + 4;
+      const totalHeight = iconHeight + labelHeight + 4;
       return { x: el.x, y: el.y, width: totalWidth, height: totalHeight };
     }
   }
