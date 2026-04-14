@@ -56,15 +56,16 @@ body {
 }
 
 .title-bar-link {
-  color: #99c2eb;
+  color: #ffffff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
 }
 
 .title-bar-link:hover {
-  color: #ffffff;
-  text-decoration: underline;
+  color: #4394e5;
 }
 
 .toolbar {

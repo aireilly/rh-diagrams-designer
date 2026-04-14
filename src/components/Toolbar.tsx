@@ -261,7 +261,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         <input
           type="range"
           min={0}
-          max={400}
+          max={200}
           step={5}
           value={distributeGap}
           onChange={(e) => setDistributeGap(Number(e.target.value))}
@@ -269,7 +269,17 @@ export default function Toolbar({ onExport }: ToolbarProps) {
           className="toolbar-range"
           title={`Gap: ${distributeGap}px`}
         />
-        <span className="toolbar-zoom-label">{distributeGap}px</span>
+        <input
+          type="number"
+          min={0}
+          max={200}
+          step={5}
+          value={distributeGap}
+          onChange={(e) => setDistributeGap(Math.min(200, Math.max(0, Number(e.target.value))))}
+          disabled={!canAlign}
+          className="toolbar-input-small"
+        />
+        <span className="toolbar-unit">px</span>
       </div>
 
       <div className="toolbar-separator" />

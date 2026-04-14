@@ -67,6 +67,26 @@
   cursor: default;
 }
 
+.toolbar-input-small {
+  width: 42px;
+  padding: 2px 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-family: 'Red Hat Text', sans-serif;
+  font-size: 12px;
+  text-align: center;
+  color: #262626;
+}
+
+.toolbar-input-small:disabled {
+  opacity: 0.4;
+}
+
+.toolbar-unit {
+  font-size: 12px;
+  color: #595959;
+}
+
 .toolbar-zoom-label {
   font-size: 13px;
   font-weight: 500;
