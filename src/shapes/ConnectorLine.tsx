@@ -3,6 +3,7 @@ import type Konva from 'konva';
 import { AnchorSide, Connector, DiagramElement } from '../types';
 import { ARROWHEAD, COLORS } from '../constants';
 import { useDiagram } from '../state/DiagramContext';
+import { getElementBounds } from '../utils/elementBounds';
 
 interface ConnectorLineProps {
   connector: Connector;
@@ -14,12 +15,14 @@ function getAnchorPoint(
   side: AnchorSide,
   otherEl: DiagramElement
 ): { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' } {
-  const cx = el.x + el.width / 2;
-  const cy = el.y + el.height / 2;
+  const bounds = getElementBounds(el);
+  const otherBounds = getElementBounds(otherEl);
+  const cx = bounds.x + bounds.width / 2;
+  const cy = bounds.y + bounds.height / 2;
 
   if (side === 'auto') {
-    const ocx = otherEl.x + otherEl.width / 2;
-    const ocy = otherEl.y + otherEl.height / 2;
+    const ocx = otherBounds.x + otherBounds.width / 2;
+    const ocy = otherBounds.y + otherBounds.height / 2;
     const dx = ocx - cx;
     const dy = ocy - cy;
 
@@ -32,13 +35,13 @@ function getAnchorPoint(
 
   switch (side) {
     case 'top':
-      return { x: cx, y: el.y, dir: 'up' };
+      return { x: cx, y: bounds.y, dir: 'up' };
     case 'bottom':
-      return { x: cx, y: el.y + el.height, dir: 'down' };
+      return { x: cx, y: bounds.y + bounds.height, dir: 'down' };
     case 'left':
-      return { x: el.x, y: cy, dir: 'left' };
+      return { x: bounds.x, y: cy, dir: 'left' };
     case 'right':
-      return { x: el.x + el.width, y: cy, dir: 'right' };
+      return { x: bounds.x + bounds.width, y: cy, dir: 'right' };
   }
 }
 
