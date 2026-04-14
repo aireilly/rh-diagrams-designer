@@ -144,31 +144,33 @@ export default function Toolbar({ onExport }: ToolbarProps) {
 
   const handleDistribute = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
-    if (selected.length < 3) return;
+    if (selected.length < 2) return;
 
-    if (lastAlignAxis.current === 'h') {
+    if (lastAlignAxis.current === 'v') {
+      // Aligned top/bottom → spread horizontally from center
       const sorted = [...selected].sort((a, b) => a.x - b.x);
-      const first = sorted[0];
-      const last = sorted[sorted.length - 1];
-      const totalSpan = (last.x + last.width) - first.x;
-      const totalElementWidth = sorted.reduce((sum, el) => sum + el.width, 0);
-      const gap = (totalSpan - totalElementWidth) / (sorted.length - 1);
-      let currentX = first.x;
+      const boundsLeft = Math.min(...sorted.map((el) => el.x));
+      const boundsRight = Math.max(...sorted.map((el) => el.x + el.width));
+      const center = (boundsLeft + boundsRight) / 2;
+      const totalWidth = sorted.reduce((sum, el) => sum + el.width, 0);
+      const totalSpan = totalWidth + (sorted.length - 1) * CLUSTER_GAP;
+      let startX = center - totalSpan / 2;
       for (const el of sorted) {
-        updateElement(el.id, { x: Math.round(currentX) });
-        currentX += el.width + gap;
+        updateElement(el.id, { x: Math.round(startX) });
+        startX += el.width + CLUSTER_GAP;
       }
     } else {
+      // Aligned left/right → spread vertically from center
       const sorted = [...selected].sort((a, b) => a.y - b.y);
-      const first = sorted[0];
-      const last = sorted[sorted.length - 1];
-      const totalSpan = (last.y + last.height) - first.y;
-      const totalElementHeight = sorted.reduce((sum, el) => sum + el.height, 0);
-      const gap = (totalSpan - totalElementHeight) / (sorted.length - 1);
-      let currentY = first.y;
+      const boundsTop = Math.min(...sorted.map((el) => el.y));
+      const boundsBottom = Math.max(...sorted.map((el) => el.y + el.height));
+      const center = (boundsTop + boundsBottom) / 2;
+      const totalHeight = sorted.reduce((sum, el) => sum + el.height, 0);
+      const totalSpan = totalHeight + (sorted.length - 1) * CLUSTER_GAP;
+      let startY = center - totalSpan / 2;
       for (const el of sorted) {
-        updateElement(el.id, { y: Math.round(currentY) });
-        currentY += el.height + gap;
+        updateElement(el.id, { y: Math.round(startY) });
+        startY += el.height + CLUSTER_GAP;
       }
     }
   };
