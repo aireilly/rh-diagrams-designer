@@ -5,7 +5,7 @@ import { DiagramElement } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
 import { ICONS } from './iconPaths';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram } from '../state/DiagramContext';
+import { useDiagram, useShapeClick } from '../state/DiagramContext';
 
 const ICON_SCALE = 2;
 
@@ -39,6 +39,7 @@ interface IconShapeProps {
 
 export default function IconShape({ element, isSelected }: IconShapeProps) {
   const { moveElement, state } = useDiagram();
+  const handleClick = useShapeClick(element.id);
   const icon = ICONS.find((i) => i.id === element.iconId);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -61,7 +62,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   const iconImage = useIconImage(icon.id, icon.viewBox, icon.path, scaledWidth, scaledHeight, COLORS.ICON_GRAY);
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
       {element.stacked && (
         <>
           <Line points={[totalWidth + 10, 10, totalWidth + 10, totalHeight + 10, 10, totalHeight + 10]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />

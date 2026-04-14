@@ -3,7 +3,7 @@ import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { CALLOUT_CIRCLE, FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram } from '../state/DiagramContext';
+import { useDiagram, useShapeClick } from '../state/DiagramContext';
 
 interface CircleCalloutProps {
   element: DiagramElement;
@@ -12,6 +12,7 @@ interface CircleCalloutProps {
 
 export default function CircleCallout({ element, isSelected }: CircleCalloutProps) {
   const { moveElement, state } = useDiagram();
+  const handleClick = useShapeClick(element.id);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
@@ -19,7 +20,7 @@ export default function CircleCallout({ element, isSelected }: CircleCalloutProp
   };
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
       <Circle
         radius={CALLOUT_CIRCLE.RADIUS}
         fill={CALLOUT_CIRCLE.FILL}

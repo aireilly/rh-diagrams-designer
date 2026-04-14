@@ -4,7 +4,7 @@ import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram } from '../state/DiagramContext';
+import { useDiagram, useShapeClick } from '../state/DiagramContext';
 
 interface TextLabelProps {
   element: DiagramElement;
@@ -13,6 +13,7 @@ interface TextLabelProps {
 
 export default function TextLabel({ element, isSelected }: TextLabelProps) {
   const { moveElement, updateElement, state } = useDiagram();
+  const handleClick = useShapeClick(element.id);
   const textRef = useRef<Konva.Text>(null);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -64,7 +65,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
   };
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
       {isSelected && (
         <Rect
           width={element.width}

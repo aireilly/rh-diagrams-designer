@@ -99,3 +99,48 @@ export function useDiagram(): DiagramContextValue {
   if (!ctx) throw new Error('useDiagram must be used within DiagramProvider');
   return ctx;
 }
+
+/**
+ * Shared click handler for all canvas shapes.
+ * - Connector mode: returns early so click bubbles to Stage for wiring.
+ * - Normal mode: handles selection with shift-toggle and overlap cycling.
+ */
+export function useShapeClick(elementId: string) {
+  const { setSelection, state } = useDiagram();
+
+  return useCallback(
+    (e: import('konva/lib/Node').KonvaEventObject<MouseEvent>) => {
+      if (state.tool === 'connector-solid' || state.tool === 'connector-dashed') {
+        return; // Let click bubble to Stage for connector wiring
+      }
+      e.cancelBubble = true;
+
+      if (e.evt.shiftKey) {
+        const ids = state.selectedIds.includes(elementId)
+          ? state.selectedIds.filter((id) => id !== elementId)
+          : [...state.selectedIds, elementId];
+        setSelection(ids);
+      } else if (state.selectedIds.length === 1 && state.selectedIds[0] === elementId) {
+        // Already sole selection — cycle to next overlapping element
+        const stage = e.target.getStage();
+        const pointer = stage?.getPointerPosition();
+        if (pointer) {
+          const x = pointer.x / state.zoom;
+          const y = pointer.y / state.zoom;
+          const overlapping = state.elements.filter((el) =>
+            x >= el.x && x <= el.x + el.width &&
+            y >= el.y && y <= el.y + el.height
+          );
+          if (overlapping.length > 1) {
+            const currentIndex = overlapping.findIndex((el) => el.id === elementId);
+            const nextIndex = (currentIndex + 1) % overlapping.length;
+            setSelection([overlapping[nextIndex].id]);
+          }
+        }
+      } else {
+        setSelection([elementId]);
+      }
+    },
+    [elementId, setSelection, state.tool, state.selectedIds, state.elements, state.zoom]
+  );
+}
