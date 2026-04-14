@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useDiagram } from '../state/DiagramContext';
 import { ZOOM, COLORS } from '../constants';
 import { DiagramElement } from '../types';
@@ -15,6 +16,7 @@ interface ToolbarProps {
 
 export default function Toolbar({ onExport }: ToolbarProps) {
   const { state, dispatch, undo, redo, canUndo, canRedo, updateElement, addElement } = useDiagram();
+  const lastAlignAxis = useRef<'h' | 'v'>('h');
 
   const handleZoomIn = () => {
     const next = Math.min(state.zoom + ZOOM.STEP, ZOOM.MAX);
@@ -103,6 +105,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const handleAlignLeft = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
+    lastAlignAxis.current = 'h';
     const minX = Math.min(...selected.map((el) => el.x));
     for (const el of selected) {
       if (el.x !== minX) updateElement(el.id, { x: minX });
@@ -112,6 +115,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const handleAlignRight = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
+    lastAlignAxis.current = 'h';
     const maxRight = Math.max(...selected.map((el) => el.x + el.width));
     for (const el of selected) {
       updateElement(el.id, { x: maxRight - el.width });
@@ -121,6 +125,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const handleAlignTop = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
+    lastAlignAxis.current = 'v';
     const minY = Math.min(...selected.map((el) => el.y));
     for (const el of selected) {
       if (el.y !== minY) updateElement(el.id, { y: minY });
@@ -130,9 +135,41 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const handleAlignBottom = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
+    lastAlignAxis.current = 'v';
     const maxBottom = Math.max(...selected.map((el) => el.y + el.height));
     for (const el of selected) {
       updateElement(el.id, { y: maxBottom - el.height });
+    }
+  };
+
+  const handleDistribute = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 3) return;
+
+    if (lastAlignAxis.current === 'h') {
+      const sorted = [...selected].sort((a, b) => a.x - b.x);
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      const totalSpan = (last.x + last.width) - first.x;
+      const totalElementWidth = sorted.reduce((sum, el) => sum + el.width, 0);
+      const gap = (totalSpan - totalElementWidth) / (sorted.length - 1);
+      let currentX = first.x;
+      for (const el of sorted) {
+        updateElement(el.id, { x: Math.round(currentX) });
+        currentX += el.width + gap;
+      }
+    } else {
+      const sorted = [...selected].sort((a, b) => a.y - b.y);
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      const totalSpan = (last.y + last.height) - first.y;
+      const totalElementHeight = sorted.reduce((sum, el) => sum + el.height, 0);
+      const gap = (totalSpan - totalElementHeight) / (sorted.length - 1);
+      let currentY = first.y;
+      for (const el of sorted) {
+        updateElement(el.id, { y: Math.round(currentY) });
+        currentY += el.height + gap;
+      }
     }
   };
 
@@ -212,6 +249,9 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         </button>
         <button className="toolbar-btn" onClick={handleAlignBottom} disabled={!canAlign} title="Align Bottom">
           B
+        </button>
+        <button className="toolbar-btn" onClick={handleDistribute} disabled={!canAlign} title="Distribute evenly along last aligned axis">
+          Distribute
         </button>
       </div>
 
