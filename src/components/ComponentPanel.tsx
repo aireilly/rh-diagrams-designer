@@ -17,9 +17,8 @@ const ICON_CATEGORIES: { label: string; prefix: string }[] = [
   { label: 'Misc', prefix: '' },
 ];
 
-let nextId = 1;
 function generateId(prefix: string): string {
-  return `${prefix}-${nextId++}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
 function createBoxElement(variant: keyof typeof BOX_VARIANTS): DiagramElement {
