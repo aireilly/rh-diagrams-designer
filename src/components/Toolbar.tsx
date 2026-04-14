@@ -182,6 +182,23 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const canStack = state.selectedIds.some((id) => state.elements.some((el) => el.id === id));
   const canAlign = canStack;
 
+  const selectedNetworkLine = state.elements.find(
+    (el) => el.type === 'network-line' && state.selectedIds.includes(el.id)
+  );
+  const networkLineLength = selectedNetworkLine
+    ? (selectedNetworkLine.height === 0 ? selectedNetworkLine.width : selectedNetworkLine.height)
+    : 0;
+
+  const handleNetworkLineLength = (len: number) => {
+    if (!selectedNetworkLine) return;
+    const clamped = Math.min(1200, Math.max(10, len));
+    if (selectedNetworkLine.height === 0) {
+      updateElement(selectedNetworkLine.id, { width: clamped });
+    } else {
+      updateElement(selectedNetworkLine.id, { height: clamped });
+    }
+  };
+
   const handleSave = () => {
     const json = serializeProject(state);
     downloadFile(json, 'diagram.json', 'application/json');
@@ -277,6 +294,34 @@ export default function Toolbar({ onExport }: ToolbarProps) {
           value={distributeGap}
           onChange={(e) => setDistributeGap(Math.min(200, Math.max(0, Number(e.target.value))))}
           disabled={!canAlign}
+          className="toolbar-input-small"
+        />
+        <span className="toolbar-unit">px</span>
+      </div>
+
+      <div className="toolbar-separator" />
+
+      <div className="toolbar-group">
+        <span className="toolbar-unit">Length</span>
+        <input
+          type="range"
+          min={10}
+          max={1200}
+          step={5}
+          value={networkLineLength}
+          onChange={(e) => handleNetworkLineLength(Number(e.target.value))}
+          disabled={!selectedNetworkLine}
+          className="toolbar-range"
+          title={`Length: ${networkLineLength}px`}
+        />
+        <input
+          type="number"
+          min={10}
+          max={1200}
+          step={5}
+          value={networkLineLength}
+          onChange={(e) => handleNetworkLineLength(Number(e.target.value))}
+          disabled={!selectedNetworkLine}
           className="toolbar-input-small"
         />
         <span className="toolbar-unit">px</span>

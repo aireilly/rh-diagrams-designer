@@ -2,7 +2,7 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
-import { CANVAS, GRID, COLORS } from '../constants';
+import { CANVAS, GRID, COLORS, ZOOM } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
 import RectShape from '../shapes/RectShape';
 import CircleCallout from '../shapes/CircleCallout';
@@ -62,6 +62,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   const isDrawingNetworkLine = useRef(false);
   const networkLineOrigin = useRef<{ x: number; y: number } | null>(null);
   const justFinishedNetworkLine = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isConnectorMode = state.tool === 'connector-solid' || state.tool === 'connector-dashed';
   const isNetworkLineMode = state.tool === 'network-line';
@@ -369,14 +370,30 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [deleteSelected, undo, redo, state.selectedIds, state.elements, state.connectors, moveElement, addElement, setSelection, dispatch]);
 
+  // Scroll-wheel zoom
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const direction = e.deltaY < 0 ? 1 : -1;
+      const next = Math.round(Math.min(ZOOM.MAX, Math.max(ZOOM.MIN, state.zoom + direction * ZOOM.STEP)) * 100) / 100;
+      dispatch({ type: 'SET_ZOOM', zoom: next });
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [state.zoom, dispatch]);
+
   // Update transformer selection
   useEffect(() => {
     const transformer = transformerRef.current;
     const stage = stageRef.current;
     if (!transformer || !stage) return;
 
-    // Exclude icon and network-line elements from transformer — fixed-size
-    const fixedIds = new Set(state.elements.filter((el) => el.type === 'icon' || el.type === 'network-line').map((el) => el.id));
+    // Exclude icon, network-line, and callout elements from transformer — fixed-size
+    const fixedIds = new Set(state.elements.filter((el) => el.type === 'icon' || el.type === 'network-line' || el.type === 'circle').map((el) => el.id));
     const selectedNodes = state.selectedIds
       .filter((id) => !fixedIds.has(id))
       .map((id) => stage.findOne(`#${id}`))
@@ -407,7 +424,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   };
 
   return (
-    <div className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}${isNetworkLineMode ? ' network-line-mode' : ''}`}>
+    <div ref={containerRef} className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}${isNetworkLineMode ? ' network-line-mode' : ''}`}>
+      <div className="canvas-stage-wrapper">
       <Stage
         ref={stageRef as React.RefObject<Konva.Stage>}
         width={width * state.zoom}
@@ -467,6 +485,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
           )}
         </Layer>
       </Stage>
+      </div>
     </div>
   );
 }

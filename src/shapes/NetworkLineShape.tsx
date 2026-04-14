@@ -24,7 +24,6 @@ export default function NetworkLineShape({ element, isSelected }: NetworkLineSha
     let newX = snapToGrid(e.target.x(), increment);
     let newY = snapToGrid(e.target.y(), increment);
 
-    // Snap to existing network lines
     const otherNetworkLines = state.elements.filter(
       (el) => el.type === 'network-line' && el.id !== element.id
     );
