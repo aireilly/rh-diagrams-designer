@@ -19,7 +19,7 @@ function App() {
         <header className="title-bar">
           <span className="title-bar-name">
             <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="Red Hat" className="title-bar-logo" />
-            Red Hat Diagram Creator
+            Red Hat Diagram Designer
           </span>
           <a
             className="title-bar-link"
