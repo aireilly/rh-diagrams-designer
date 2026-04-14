@@ -55,6 +55,18 @@
   background: #004d99;
 }
 
+.toolbar-range {
+  width: 60px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #0066cc;
+}
+
+.toolbar-range:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .toolbar-zoom-label {
   font-size: 13px;
   font-weight: 500;

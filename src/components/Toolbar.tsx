@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useDiagram } from '../state/DiagramContext';
 import { ZOOM, COLORS } from '../constants';
 import { DiagramElement } from '../types';
@@ -17,6 +17,7 @@ interface ToolbarProps {
 export default function Toolbar({ onExport }: ToolbarProps) {
   const { state, dispatch, undo, redo, canUndo, canRedo, updateElement, addElement } = useDiagram();
   const lastAlignAxis = useRef<'h' | 'v'>('h');
+  const [distributeAmount, setDistributeAmount] = useState(100);
 
   const handleZoomIn = () => {
     const next = Math.min(state.zoom + ZOOM.STEP, ZOOM.MAX);
@@ -146,6 +147,8 @@ export default function Toolbar({ onExport }: ToolbarProps) {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
 
+    const t = distributeAmount / 100;
+
     if (lastAlignAxis.current === 'v') {
       // Aligned top/bottom → spread horizontally from center
       const sorted = [...selected].sort((a, b) => a.x - b.x);
@@ -153,11 +156,13 @@ export default function Toolbar({ onExport }: ToolbarProps) {
       const boundsRight = Math.max(...sorted.map((el) => el.x + el.width));
       const center = (boundsLeft + boundsRight) / 2;
       const totalWidth = sorted.reduce((sum, el) => sum + el.width, 0);
-      const totalSpan = totalWidth + (sorted.length - 1) * CLUSTER_GAP;
-      let startX = center - totalSpan / 2;
+      const fullSpan = totalWidth + (sorted.length - 1) * CLUSTER_GAP;
+      let distX = center - fullSpan / 2;
       for (const el of sorted) {
-        updateElement(el.id, { x: Math.round(startX) });
-        startX += el.width + CLUSTER_GAP;
+        const centeredX = center - el.width / 2;
+        const finalX = centeredX + (distX - centeredX) * t;
+        updateElement(el.id, { x: Math.round(finalX) });
+        distX += el.width + CLUSTER_GAP;
       }
     } else {
       // Aligned left/right → spread vertically from center
@@ -166,11 +171,13 @@ export default function Toolbar({ onExport }: ToolbarProps) {
       const boundsBottom = Math.max(...sorted.map((el) => el.y + el.height));
       const center = (boundsTop + boundsBottom) / 2;
       const totalHeight = sorted.reduce((sum, el) => sum + el.height, 0);
-      const totalSpan = totalHeight + (sorted.length - 1) * CLUSTER_GAP;
-      let startY = center - totalSpan / 2;
+      const fullSpan = totalHeight + (sorted.length - 1) * CLUSTER_GAP;
+      let distY = center - fullSpan / 2;
       for (const el of sorted) {
-        updateElement(el.id, { y: Math.round(startY) });
-        startY += el.height + CLUSTER_GAP;
+        const centeredY = center - el.height / 2;
+        const finalY = centeredY + (distY - centeredY) * t;
+        updateElement(el.id, { y: Math.round(finalY) });
+        distY += el.height + CLUSTER_GAP;
       }
     }
   };
@@ -255,6 +262,17 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         <button className="toolbar-btn" onClick={handleDistribute} disabled={!canAlign} title="Distribute evenly along last aligned axis">
           Distribute
         </button>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={distributeAmount}
+          onChange={(e) => setDistributeAmount(Number(e.target.value))}
+          disabled={!canAlign}
+          className="toolbar-range"
+          title={`${distributeAmount}%`}
+        />
+        <span className="toolbar-zoom-label">{distributeAmount}%</span>
       </div>
 
       <div className="toolbar-separator" />
