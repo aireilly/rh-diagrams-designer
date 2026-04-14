@@ -232,11 +232,11 @@ export default function PropertiesPanel() {
                 className={`swatch ${element.fill === c.hex ? 'active' : ''}`}
                 style={{ backgroundColor: c.hex }}
                 onClick={() => {
-                  const darkColors = ['#151515', '#707070', '#0066cc', '#4394e5', '#63993d', '#5e40be', '#f0561d', '#b98412'];
+                  const darkColors = ['#151515', '#4d4d4d', '#707070', '#0066cc', '#4394e5', '#63993d', '#5e40be', '#f0561d', '#b98412'];
                   const isDark = darkColors.includes(c.hex);
                   updateElement(element.id, {
                     fill: c.hex,
-                    textColor: isDark ? '#ffffff' : '#262626',
+                    textColor: isDark ? '#ffffff' : '#3c3c3c',
                   });
                 }}
                 title={`${c.name} (${c.hex})`}

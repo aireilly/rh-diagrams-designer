@@ -3,10 +3,10 @@ export const COLORS = {
   GRAY_95: '#151515',
   GRAY_50: '#707070',
   GRAY_20: '#e0e0e0',
-  DARK_GRAY: '#262626',
+  DARK_GRAY: '#3c3c3c',
   MEDIUM_GRAY: '#595959',
   LIGHT_GRAY: '#e5e5e5',
-  ICON_GRAY: '#151515',
+  ICON_GRAY: '#4d4d4d',
   WHITE: '#ffffff',
   WATERMARK_GRAY: '#ececec',
   // Blues

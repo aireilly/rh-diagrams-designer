@@ -6,10 +6,10 @@ describe('constants', () => {
       expect(COLORS.BLUE_PRIMARY).toBe('#0066cc');
       expect(COLORS.BLUE_TINT_LIGHT).toBe('#99c2eb');
       expect(COLORS.BLUE_TINT_LIGHTER).toBe('#d9e8f7');
-      expect(COLORS.DARK_GRAY).toBe('#262626');
+      expect(COLORS.DARK_GRAY).toBe('#3c3c3c');
       expect(COLORS.MEDIUM_GRAY).toBe('#595959');
       expect(COLORS.LIGHT_GRAY).toBe('#e5e5e5');
-      expect(COLORS.ICON_GRAY).toBe('#7f7f7f');
+      expect(COLORS.ICON_GRAY).toBe('#4d4d4d');
       expect(COLORS.WHITE).toBe('#ffffff');
       expect(COLORS.WATERMARK_GRAY).toBe('#ececec');
     });
