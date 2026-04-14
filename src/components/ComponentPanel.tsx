@@ -65,13 +65,22 @@ function createCircleElement(number: number, x: number, y: number): DiagramEleme
 
 function createIconElement(iconId: string): DiagramElement {
   const icon = ICONS.find((i) => i.id === iconId);
+  const scaledWidth = (icon?.width ?? 24) * 2;
+  const scaledHeight = (icon?.height ?? 24) * 2;
+  const label = icon?.name ?? 'Icon';
+  const longestWord = label.split(/[\s,]+/).reduce((a, b) => a.length > b.length ? a : b, '');
+  const minWordWidth = longestWord.length * 8 + 16;
+  const totalWidth = Math.max(scaledWidth, minWordWidth, 80);
+  const labelLines = Math.ceil(label.length * 7 / totalWidth) + 1;
+  const labelHeight = labelLines * 14 + 4;
+  const totalHeight = scaledHeight + labelHeight + 6;
   return {
     id: generateId('icon'),
     type: 'icon',
     x: 50,
     y: 50,
-    width: Math.max((icon?.width ?? 24) * 2, (icon?.name ?? 'Icon').length * 7 + 10, 80),
-    height: (icon?.height ?? 24) * 2 + 24,
+    width: totalWidth,
+    height: totalHeight,
     rotation: 0,
     fill: COLORS.ICON_GRAY,
     stroke: '',
