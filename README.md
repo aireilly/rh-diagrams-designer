@@ -1,6 +1,6 @@
 # Red Hat Diagrams Designer
 
-A browser-based WYSIWYG block diagram editor for Red Hat technical documentation. Create production-ready diagrams that comply with Red Hat brand standards — no design skills required.
+(Red Hat Diagrams Designer)[https://aireilly.github.io/rh-diagrams-designer/] is a browser-based WYSIWYG block diagram editor for Red Hat technical documentation. Create production-ready diagrams that comply with Red Hat brand standards — no design skills required.
 
 Built with React, TypeScript, and Konva.js. Runs entirely client-side.
 
