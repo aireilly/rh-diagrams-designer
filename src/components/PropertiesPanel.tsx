@@ -1,5 +1,5 @@
 import { useDiagram } from '../state/DiagramContext';
-import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS } from '../constants';
+import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS, NETWORK_COLORS } from '../constants';
 import { AnchorSide, ArrowDirection, ConnectorType, FontWeight, TextPosition } from '../types';
 import './PropertiesPanel.css';
 
@@ -149,7 +149,26 @@ export default function PropertiesPanel() {
     <aside className="properties-panel">
       <h3 className="panel-title">Properties</h3>
 
+      {/* Network line color */}
+      {element.type === 'network-line' && (
+        <div className="prop-group">
+          <label className="prop-label">Network Type</label>
+          <div className="swatch-row">
+            {NETWORK_COLORS.map((c) => (
+              <button
+                key={c.hex}
+                className={`swatch ${element.stroke === c.hex ? 'active' : ''}`}
+                style={{ backgroundColor: c.hex }}
+                onClick={() => updateElement(element.id, { stroke: c.hex })}
+                title={c.name}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Text */}
+      {element.type !== 'network-line' && (
       <div className="prop-group">
         <label className="prop-label">Text</label>
         <input
@@ -159,6 +178,7 @@ export default function PropertiesPanel() {
           onChange={(e) => updateElement(element.id, { text: e.target.value })}
         />
       </div>
+      )}
 
       {/* Font Size */}
       {(element.type === 'rect' || element.type === 'text') && (

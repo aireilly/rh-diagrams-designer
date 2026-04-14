@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDiagram } from '../state/DiagramContext';
-import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE, GRID } from '../constants';
+import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE, GRID, NETWORK_COLORS } from '../constants';
 import { DiagramElement } from '../types';
 import { ICONS } from '../shapes/iconPaths';
 import './ComponentPanel.css';
@@ -192,6 +192,11 @@ export default function ComponentPanel() {
     dispatch({ type: 'SET_TOOL', tool: tool as 'connector-solid' | 'connector-dashed' });
   };
 
+  const handleSelectNetworkTool = (color: string) => {
+    dispatch({ type: 'SET_NETWORK_LINE_COLOR', color });
+    dispatch({ type: 'SET_TOOL', tool: 'network-line' });
+  };
+
   return (
     <aside className="component-panel">
       <h3 className="panel-title">Components</h3>
@@ -231,6 +236,22 @@ export default function ComponentPanel() {
         </button>
       </section>
 
+
+      <section className="panel-section">
+        <h4 className="section-title">Network Connections</h4>
+        <div className="component-grid">
+          {NETWORK_COLORS.map((c) => (
+            <button
+              key={c.id}
+              className={`component-btn ${state.tool === 'network-line' && state.networkLineColor === c.hex ? 'active' : ''}`}
+              onClick={() => handleSelectNetworkTool(c.hex)}
+            >
+              <div className="preview-network-line" style={{ backgroundColor: c.hex }} />
+              <span>{c.name}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="panel-section">
         <h4 className="section-title">Connectors</h4>

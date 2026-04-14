@@ -3,10 +3,12 @@ import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
 import { CANVAS, GRID, COLORS } from '../constants';
+import { snapToGrid } from '../utils/snapGrid';
 import RectShape from '../shapes/RectShape';
 import CircleCallout from '../shapes/CircleCallout';
 import TextLabel from '../shapes/TextLabel';
 import IconShape from '../shapes/IconShape';
+import NetworkLineShape from '../shapes/NetworkLineShape';
 import ConnectorLine from '../shapes/ConnectorLine';
 import './Canvas.css';
 
@@ -56,8 +58,13 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   const isDraggingSelection = useRef(false);
   const justFinishedDragSelect = useRef(false);
   const clipboard = useRef<typeof state.elements>([]);
+  const [networkLineDraw, setNetworkLineDraw] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const isDrawingNetworkLine = useRef(false);
+  const networkLineOrigin = useRef<{ x: number; y: number } | null>(null);
+  const justFinishedNetworkLine = useRef(false);
 
   const isConnectorMode = state.tool === 'connector-solid' || state.tool === 'connector-dashed';
+  const isNetworkLineMode = state.tool === 'network-line';
   const width = CANVAS.WIDTH;
   const height = state.canvasHeight;
 
@@ -65,6 +72,10 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     (e: Konva.KonvaEventObject<MouseEvent>) => {
       if (justFinishedDragSelect.current) {
         justFinishedDragSelect.current = false;
+        return;
+      }
+      if (justFinishedNetworkLine.current) {
+        justFinishedNetworkLine.current = false;
         return;
       }
 
@@ -127,14 +138,64 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
 
       const x = pointer.x / state.zoom;
       const y = pointer.y / state.zoom;
+
+      if (isNetworkLineMode) {
+        const snappedX = state.snapEnabled ? snapToGrid(x, GRID.MINOR) : x;
+        const snappedY = state.snapEnabled ? snapToGrid(y, GRID.MINOR) : y;
+        networkLineOrigin.current = { x: snappedX, y: snappedY };
+        isDrawingNetworkLine.current = true;
+        setNetworkLineDraw({ x1: snappedX, y1: snappedY, x2: snappedX, y2: snappedY });
+        return;
+      }
+
       isDraggingSelection.current = true;
       setSelRect({ x1: x, y1: y, x2: x, y2: y });
     },
-    [isConnectorMode, state.zoom]
+    [isConnectorMode, isNetworkLineMode, state.zoom, state.snapEnabled]
   );
 
   const handleMouseMove = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
+      // Network line drawing
+      if (isDrawingNetworkLine.current && networkLineOrigin.current) {
+        const stage = e.target.getStage();
+        if (!stage) return;
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return;
+
+        const origin = networkLineOrigin.current;
+        const rawX = pointer.x / state.zoom;
+        const rawY = pointer.y / state.zoom;
+        const dx = Math.abs(rawX - origin.x);
+        const dy = Math.abs(rawY - origin.y);
+
+        if (dx >= dy) {
+          // Horizontal
+          const endX = state.snapEnabled ? snapToGrid(rawX, GRID.MINOR) : rawX;
+          let lineY = origin.y;
+          for (const el of state.elements) {
+            if (el.type === 'network-line' && el.height === 0 && Math.abs(lineY - el.y) <= GRID.MINOR) {
+              lineY = el.y;
+              break;
+            }
+          }
+          setNetworkLineDraw({ x1: origin.x, y1: lineY, x2: endX, y2: lineY });
+        } else {
+          // Vertical
+          let lineX = origin.x;
+          const endY = state.snapEnabled ? snapToGrid(rawY, GRID.MINOR) : rawY;
+          for (const el of state.elements) {
+            if (el.type === 'network-line' && el.width === 0 && Math.abs(lineX - el.x) <= GRID.MINOR) {
+              lineX = el.x;
+              break;
+            }
+          }
+          setNetworkLineDraw({ x1: lineX, y1: origin.y, x2: lineX, y2: endY });
+        }
+        return;
+      }
+
+      // Selection rectangle
       if (!isDraggingSelection.current || !selRect) return;
 
       const stage = e.target.getStage();
@@ -144,10 +205,48 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
 
       setSelRect({ ...selRect, x2: pointer.x / state.zoom, y2: pointer.y / state.zoom });
     },
-    [selRect, state.zoom]
+    [selRect, state.zoom, state.snapEnabled, state.elements]
   );
 
   const handleMouseUp = useCallback(() => {
+    // Network line creation
+    if (isDrawingNetworkLine.current) {
+      isDrawingNetworkLine.current = false;
+      networkLineOrigin.current = null;
+
+      if (networkLineDraw) {
+        const { x1, y1, x2, y2 } = networkLineDraw;
+        const lineLength = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+
+        if (lineLength >= GRID.MAJOR) {
+          const isHorizontal = y1 === y2;
+          addElement({
+            id: `network-line-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            type: 'network-line',
+            x: isHorizontal ? Math.min(x1, x2) : x1,
+            y: isHorizontal ? y1 : Math.min(y1, y2),
+            width: isHorizontal ? Math.abs(x2 - x1) : 0,
+            height: isHorizontal ? 0 : Math.abs(y2 - y1),
+            rotation: 0,
+            fill: '',
+            stroke: state.networkLineColor,
+            strokeWidth: 2,
+            text: '',
+            fontSize: 11,
+            fontWeight: 'medium',
+            textColor: COLORS.GRAY_95,
+            groupId: null,
+          });
+          justFinishedNetworkLine.current = true;
+        }
+        dispatch({ type: 'SET_TOOL', tool: 'select' });
+      }
+
+      setNetworkLineDraw(null);
+      return;
+    }
+
+    // Selection rectangle
     if (!isDraggingSelection.current || !selRect) {
       isDraggingSelection.current = false;
       setSelRect(null);
@@ -177,7 +276,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     }
 
     setSelRect(null);
-  }, [selRect, state.elements, setSelection]);
+  }, [networkLineDraw, selRect, state.elements, setSelection, state.networkLineColor, addElement, dispatch]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -186,6 +285,9 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
 
       if (e.key === 'Escape') {
         setPendingFrom(null);
+        isDrawingNetworkLine.current = false;
+        networkLineOrigin.current = null;
+        setNetworkLineDraw(null);
         dispatch({ type: 'SET_TOOL', tool: 'select' });
       }
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -273,16 +375,16 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     const stage = stageRef.current;
     if (!transformer || !stage) return;
 
-    // Exclude icon elements from transformer — icons are fixed-size
-    const iconIds = new Set(state.elements.filter((el) => el.type === 'icon').map((el) => el.id));
+    // Exclude icon and network-line elements from transformer — fixed-size
+    const fixedIds = new Set(state.elements.filter((el) => el.type === 'icon' || el.type === 'network-line').map((el) => el.id));
     const selectedNodes = state.selectedIds
-      .filter((id) => !iconIds.has(id))
+      .filter((id) => !fixedIds.has(id))
       .map((id) => stage.findOne(`#${id}`))
       .filter((node): node is Konva.Node => node !== undefined);
 
     transformer.nodes(selectedNodes);
     transformer.getLayer()?.batchDraw();
-  }, [state.selectedIds, stageRef]);
+  }, [state.selectedIds, state.elements, stageRef]);
 
   const renderElement = (el: typeof state.elements[0]) => {
     const isSelected = state.selectedIds.includes(el.id);
@@ -297,13 +399,15 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         return <TextLabel {...props} />;
       case 'icon':
         return <IconShape {...props} />;
+      case 'network-line':
+        return <NetworkLineShape {...props} />;
       default:
         return null;
     }
   };
 
   return (
-    <div className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}`}>
+    <div className={`canvas-container${isConnectorMode ? ' connector-mode' : ''}${isNetworkLineMode ? ' network-line-mode' : ''}`}>
       <Stage
         ref={stageRef as React.RefObject<Konva.Stage>}
         width={width * state.zoom}
@@ -321,6 +425,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
           {state.snapEnabled && <GridLines width={width} height={height} />}
         </Layer>
         <Layer>
+          {state.elements.filter((el) => el.type === 'network-line').map(renderElement)}
           {state.connectors.map((c) => (
             <ConnectorLine
               key={c.id}
@@ -328,7 +433,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
               isSelected={state.selectedIds.includes(c.id)}
             />
           ))}
-          {state.elements.filter((el) => el.type !== 'circle').map(renderElement)}
+          {state.elements.filter((el) => el.type !== 'circle' && el.type !== 'network-line').map(renderElement)}
           {state.elements.filter((el) => el.type === 'circle').map(renderElement)}
           <Transformer
             ref={transformerRef}
@@ -338,6 +443,15 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
             anchorCornerRadius={2}
             rotateEnabled={false}
           />
+          {networkLineDraw && (
+            <Line
+              points={[networkLineDraw.x1, networkLineDraw.y1, networkLineDraw.x2, networkLineDraw.y2]}
+              stroke={state.networkLineColor}
+              strokeWidth={2}
+              dash={[4, 4]}
+              listening={false}
+            />
+          )}
           {selRect && (
             <Rect
               x={Math.min(selRect.x1, selRect.x2)}

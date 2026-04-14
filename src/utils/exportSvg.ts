@@ -157,6 +157,13 @@ function renderIcon(el: DiagramElement): string {
   return parts.join('\n');
 }
 
+function renderNetworkLine(el: DiagramElement): string {
+  const isH = el.height === 0;
+  const x2 = isH ? el.x + el.width : el.x;
+  const y2 = isH ? el.y : el.y + el.height;
+  return `  <line x1="${el.x}" y1="${el.y}" x2="${x2}" y2="${y2}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}" />`;
+}
+
 function renderElement(el: DiagramElement): string {
   switch (el.type) {
     case 'rect':
@@ -167,6 +174,8 @@ function renderElement(el: DiagramElement): string {
       return renderText(el);
     case 'icon':
       return renderIcon(el);
+    case 'network-line':
+      return renderNetworkLine(el);
     default:
       return '';
   }

@@ -95,6 +95,15 @@ export const BOX_VARIANTS = {
   white: { fill: COLORS.WHITE, stroke: '', strokeWidth: 0, textColor: COLORS.DARK_GRAY },
 } as const;
 
+export const NETWORK_COLORS = [
+  { id: 'provisioning', name: 'Provisioning', hex: COLORS.PURPLE_50 },
+  { id: 'internal', name: 'Internal', hex: COLORS.GREEN_50 },
+  { id: 'storage-1', name: 'Storage 1', hex: COLORS.RED_ORANGE_50 },
+  { id: 'storage-2', name: 'Storage 2', hex: COLORS.YELLOW_40 },
+  { id: 'provider', name: 'Provider', hex: COLORS.BLUE_50 },
+  { id: 'external', name: 'External', hex: COLORS.BLUE_40 },
+] as const;
+
 export const ZOOM = {
   MIN: 0.25,
   MAX: 4,

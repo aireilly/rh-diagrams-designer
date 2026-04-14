@@ -28,6 +28,7 @@ describe('projectFile', () => {
     zoom: 1,
     snapEnabled: true,
     tool: 'select',
+    networkLineColor: '#5e40be',
   };
 
   it('round-trips state through serialize/deserialize', () => {

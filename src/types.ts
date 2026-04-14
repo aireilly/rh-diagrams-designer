@@ -1,4 +1,4 @@
-export type ShapeType = 'rect' | 'circle' | 'icon' | 'text';
+export type ShapeType = 'rect' | 'circle' | 'icon' | 'text' | 'network-line';
 export type ConnectorType = 'solid' | 'dashed';
 export type ArrowDirection = 'forward' | 'backward' | 'bidirectional' | 'none';
 export type AnchorSide = 'auto' | 'top' | 'bottom' | 'left' | 'right';
@@ -60,9 +60,10 @@ export interface DiagramState {
   zoom: number;
   snapEnabled: boolean;
   tool: ToolType;
+  networkLineColor: string;
 }
 
-export type ToolType = 'select' | 'connector-solid' | 'connector-dashed' | 'text';
+export type ToolType = 'select' | 'connector-solid' | 'connector-dashed' | 'text' | 'network-line';
 
 export type DiagramAction =
   | { type: 'ADD_ELEMENT'; element: DiagramElement }
@@ -77,6 +78,7 @@ export type DiagramAction =
   | { type: 'SET_ZOOM'; zoom: number }
   | { type: 'SET_SNAP'; enabled: boolean }
   | { type: 'SET_TOOL'; tool: ToolType }
+  | { type: 'SET_NETWORK_LINE_COLOR'; color: string }
   | { type: 'GROUP_ELEMENTS'; ids: string[]; groupId: string }
   | { type: 'UNGROUP_ELEMENTS'; groupId: string }
   | { type: 'LOAD_STATE'; state: DiagramState }

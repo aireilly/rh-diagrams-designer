@@ -27,6 +27,7 @@ export function deserializeProject(json: string): DiagramState {
     zoom: 1,
     snapEnabled: true,
     tool: 'select',
+    networkLineColor: '#5e40be',
   };
 }
 

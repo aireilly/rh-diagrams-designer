@@ -1,5 +1,5 @@
 import { DiagramState, DiagramAction, HistoryState } from '../types';
-import { CANVAS } from '../constants';
+import { CANVAS, COLORS } from '../constants';
 
 const STORAGE_KEY = 'rh-diagram-designer-state';
 
@@ -12,13 +12,14 @@ function createInitialDiagramState(): DiagramState {
     zoom: 1,
     snapEnabled: true,
     tool: 'select',
+    networkLineColor: COLORS.PURPLE_50,
   };
 }
 
 export function saveStateToStorage(state: DiagramState): void {
   try {
-    const { selectedIds: _sel, tool: _tool, ...persistable } = state;
-    void _sel; void _tool;
+    const { selectedIds: _sel, tool: _tool, networkLineColor: _nlc, ...persistable } = state;
+    void _sel; void _tool; void _nlc;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
   } catch {
     // Storage full or unavailable — silently ignore
@@ -125,6 +126,9 @@ function diagramReducer(state: DiagramState, action: DiagramAction): DiagramStat
     case 'SET_TOOL':
       return { ...state, tool: action.tool };
 
+    case 'SET_NETWORK_LINE_COLOR':
+      return { ...state, networkLineColor: action.color };
+
     case 'LOAD_STATE':
       return action.state;
 
@@ -138,6 +142,7 @@ const NON_HISTORY_ACTIONS: DiagramAction['type'][] = [
   'SET_ZOOM',
   'SET_SNAP',
   'SET_TOOL',
+  'SET_NETWORK_LINE_COLOR',
 ];
 
 export function historyReducer(state: HistoryState, action: DiagramAction): HistoryState {

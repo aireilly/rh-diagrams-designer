@@ -28,5 +28,15 @@ export function getElementBounds(el: DiagramElement): { x: number; y: number; wi
     return { x: el.x - r, y: el.y - r, width: r * 2, height: r * 2 };
   }
 
+  if (el.type === 'network-line') {
+    const isH = el.height === 0;
+    return {
+      x: isH ? el.x : el.x - 5,
+      y: isH ? el.y - 5 : el.y,
+      width: isH ? el.width : 10,
+      height: isH ? 10 : el.height,
+    };
+  }
+
   return { x: el.x, y: el.y, width: el.width, height: el.height };
 }
