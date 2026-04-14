@@ -100,8 +100,45 @@ export default function Toolbar({ onExport }: ToolbarProps) {
     }
   };
 
+  const handleAlignLeft = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+    const minX = Math.min(...selected.map((el) => el.x));
+    for (const el of selected) {
+      if (el.x !== minX) updateElement(el.id, { x: minX });
+    }
+  };
+
+  const handleAlignRight = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+    const maxRight = Math.max(...selected.map((el) => el.x + el.width));
+    for (const el of selected) {
+      updateElement(el.id, { x: maxRight - el.width });
+    }
+  };
+
+  const handleAlignTop = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+    const minY = Math.min(...selected.map((el) => el.y));
+    for (const el of selected) {
+      if (el.y !== minY) updateElement(el.id, { y: minY });
+    }
+  };
+
+  const handleAlignBottom = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+    const maxBottom = Math.max(...selected.map((el) => el.y + el.height));
+    for (const el of selected) {
+      updateElement(el.id, { y: maxBottom - el.height });
+    }
+  };
+
   const canCluster = state.selectedIds.filter((id) => state.elements.some((el) => el.id === id)).length >= 2;
   const canStack = state.selectedIds.some((id) => state.elements.some((el) => el.id === id));
+  const canAlign = canStack;
 
   const handleSave = () => {
     const json = serializeProject(state);
@@ -158,6 +195,23 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         </button>
         <button className="toolbar-btn" onClick={handleStack} disabled={!canStack} title="Add stack lines behind selected shape">
           Stack
+        </button>
+      </div>
+
+      <div className="toolbar-separator" />
+
+      <div className="toolbar-group">
+        <button className="toolbar-btn" onClick={handleAlignLeft} disabled={!canAlign} title="Align Left">
+          L
+        </button>
+        <button className="toolbar-btn" onClick={handleAlignRight} disabled={!canAlign} title="Align Right">
+          R
+        </button>
+        <button className="toolbar-btn" onClick={handleAlignTop} disabled={!canAlign} title="Align Top">
+          T
+        </button>
+        <button className="toolbar-btn" onClick={handleAlignBottom} disabled={!canAlign} title="Align Bottom">
+          B
         </button>
       </div>
 
