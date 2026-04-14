@@ -83,11 +83,6 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
           <Line points={[totalWidth + 5, 5, totalWidth + 5, totalHeight + 5, 5, totalHeight + 5]} stroke={COLORS.GRAY_95} strokeWidth={1} listening={false} />
         </>
       )}
-      <Rect
-        width={totalWidth}
-        height={totalHeight}
-        fill="transparent"
-      />
       {iconImage && (
         <Image
           image={iconImage}
@@ -95,7 +90,6 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
           y={0}
           width={scaledWidth}
           height={scaledHeight}
-          listening={false}
         />
       )}
       <Text
@@ -108,7 +102,6 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
         fill={COLORS.DARK_GRAY}
         align="center"
         wrap="word"
-        listening={false}
       />
       {isSelected && (
         <Rect
