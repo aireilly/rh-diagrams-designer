@@ -1,9 +1,10 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { Stage, Layer, Line, Rect, Transformer } from 'react-konva';
 import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
 import { CANVAS, GRID, COLORS, ZOOM } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
+import { getElementBounds } from '../utils/elementBounds';
 import RectShape from '../shapes/RectShape';
 import CircleCallout from '../shapes/CircleCallout';
 import TextLabel from '../shapes/TextLabel';
@@ -414,6 +415,28 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     transformer.getLayer()?.batchDraw();
   }, [state.selectedIds, state.elements, stageRef]);
 
+  // Bounding box around multi-selected elements
+  const groupBounds = useMemo(() => {
+    const selectedElements = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selectedElements.length < 2) return null;
+
+    const padding = 6;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const el of selectedElements) {
+      const b = getElementBounds(el);
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    }
+    return {
+      x: minX - padding,
+      y: minY - padding,
+      width: maxX - minX + padding * 2,
+      height: maxY - minY + padding * 2,
+    };
+  }, [state.elements, state.selectedIds]);
+
   const renderElement = (el: typeof state.elements[0]) => {
     const isSelected = state.selectedIds.includes(el.id);
     const props = { key: el.id, element: el, isSelected };
@@ -472,6 +495,18 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
             anchorCornerRadius={2}
             rotateEnabled={false}
           />
+          {groupBounds && (
+            <Rect
+              x={groupBounds.x}
+              y={groupBounds.y}
+              width={groupBounds.width}
+              height={groupBounds.height}
+              stroke="#4a90d9"
+              strokeWidth={1}
+              dash={[3, 3]}
+              listening={false}
+            />
+          )}
           {networkLineDraw && (
             <Line
               points={[networkLineDraw.x1, networkLineDraw.y1, networkLineDraw.x2, networkLineDraw.y2]}
