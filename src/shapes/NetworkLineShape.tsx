@@ -3,7 +3,7 @@ import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram, useShapeClick } from '../state/DiagramContext';
+import { useDiagram, useShapeClick, useGroupDrag } from '../state/DiagramContext';
 
 const HIT_PADDING = 6;
 
@@ -13,8 +13,9 @@ interface NetworkLineShapeProps {
 }
 
 export default function NetworkLineShape({ element, isSelected }: NetworkLineShapeProps) {
-  const { moveElement, state } = useDiagram();
+  const { state } = useDiagram();
   const handleClick = useShapeClick(element.id);
+  const { handleDragStart, handleDragMove, commitGroupMove } = useGroupDrag(element.id);
 
   const isHorizontal = element.height === 0;
   const lineLength = isHorizontal ? element.width : element.height;
@@ -44,7 +45,7 @@ export default function NetworkLineShape({ element, isSelected }: NetworkLineSha
       }
     }
 
-    moveElement(element.id, newX, newY);
+    commitGroupMove(newX, newY);
   };
 
   const points = isHorizontal
@@ -58,6 +59,8 @@ export default function NetworkLineShape({ element, isSelected }: NetworkLineSha
       y={element.y}
       draggable
       onClick={handleClick}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
       <Rect

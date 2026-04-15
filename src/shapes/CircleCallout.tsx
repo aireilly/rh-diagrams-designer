@@ -3,7 +3,7 @@ import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { CALLOUT_CIRCLE, FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram, useShapeClick } from '../state/DiagramContext';
+import { useDiagram, useShapeClick, useGroupDrag } from '../state/DiagramContext';
 
 interface CircleCalloutProps {
   element: DiagramElement;
@@ -11,16 +11,17 @@ interface CircleCalloutProps {
 }
 
 export default function CircleCallout({ element, isSelected }: CircleCalloutProps) {
-  const { moveElement, state } = useDiagram();
+  const { state } = useDiagram();
   const handleClick = useShapeClick(element.id);
+  const { handleDragStart, handleDragMove, commitGroupMove } = useGroupDrag(element.id);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
-    moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
+    commitGroupMove(snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
   };
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
       <Circle
         radius={CALLOUT_CIRCLE.RADIUS}
         fill={CALLOUT_CIRCLE.FILL}

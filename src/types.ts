@@ -70,6 +70,7 @@ export type DiagramAction =
   | { type: 'UPDATE_ELEMENT'; id: string; changes: Partial<DiagramElement> }
   | { type: 'DELETE_ELEMENTS'; ids: string[] }
   | { type: 'MOVE_ELEMENT'; id: string; x: number; y: number }
+  | { type: 'MOVE_ELEMENTS'; moves: { id: string; x: number; y: number }[] }
   | { type: 'ADD_CONNECTOR'; connector: Connector }
   | { type: 'UPDATE_CONNECTOR'; id: string; changes: Partial<Connector> }
   | { type: 'DELETE_CONNECTORS'; ids: string[] }

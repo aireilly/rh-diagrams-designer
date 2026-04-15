@@ -5,7 +5,7 @@ import { DiagramElement } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
 import { ICONS } from './iconPaths';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram, useShapeClick } from '../state/DiagramContext';
+import { useDiagram, useShapeClick, useGroupDrag } from '../state/DiagramContext';
 
 // Cache loaded images by key to avoid re-creating on every render
 const imageCache = new Map<string, HTMLImageElement>();
@@ -36,8 +36,9 @@ interface IconShapeProps {
 }
 
 export default function IconShape({ element, isSelected }: IconShapeProps) {
-  const { moveElement, state } = useDiagram();
+  const { state } = useDiagram();
   const handleClick = useShapeClick(element.id);
+  const { handleDragStart, handleDragMove, commitGroupMove } = useGroupDrag(element.id);
   const icon = ICONS.find((i) => i.id === element.iconId);
 
   const iconWidth = icon?.width ?? 40;
@@ -52,7 +53,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
-    moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
+    commitGroupMove(snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
   };
 
   if (!icon) return null;
@@ -66,7 +67,7 @@ export default function IconShape({ element, isSelected }: IconShapeProps) {
   const totalHeight = iconHeight + labelHeight + 4;
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
       <Rect
         width={totalWidth}
         height={totalHeight}

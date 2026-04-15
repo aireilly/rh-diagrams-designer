@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import type Konva from 'konva';
 import { DiagramAction, DiagramState, DiagramElement, Connector } from '../types';
 import { historyReducer, createInitialHistoryState, saveStateToStorage } from './historyReducer';
 
@@ -11,6 +12,7 @@ interface DiagramContextValue {
   updateElement: (id: string, changes: Partial<DiagramElement>) => void;
   deleteSelected: () => void;
   moveElement: (id: string, x: number, y: number) => void;
+  moveElements: (moves: { id: string; x: number; y: number }[]) => void;
   addConnector: (connector: Connector) => void;
   setSelection: (ids: string[]) => void;
   undo: () => void;
@@ -65,6 +67,10 @@ export function DiagramProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'MOVE_ELEMENT', id, x, y });
   }, []);
 
+  const moveElements = useCallback((moves: { id: string; x: number; y: number }[]) => {
+    dispatch({ type: 'MOVE_ELEMENTS', moves });
+  }, []);
+
   const addConnector = useCallback((connector: Connector) => {
     dispatch({ type: 'ADD_CONNECTOR', connector });
   }, []);
@@ -85,6 +91,7 @@ export function DiagramProvider({ children }: { children: ReactNode }) {
     updateElement,
     deleteSelected,
     moveElement,
+    moveElements,
     addConnector,
     setSelection,
     undo,
@@ -98,6 +105,94 @@ export function useDiagram(): DiagramContextValue {
   const ctx = useContext(DiagramContext);
   if (!ctx) throw new Error('useDiagram must be used within DiagramProvider');
   return ctx;
+}
+
+/**
+ * Shared drag handler for group movement.
+ * When multiple shapes are selected, dragging one moves them all together.
+ * Returns onDragStart, onDragMove handlers and a commitGroupMove function
+ * that each shape calls from its own onDragEnd with its snapped final position.
+ */
+export function useGroupDrag(elementId: string) {
+  const { state, moveElements } = useDiagram();
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const dragStartNodes = useRef<Map<string, Konva.Node>>(new Map());
+
+  const handleDragStart = useCallback(
+    (e: Konva.KonvaEventObject<DragEvent>) => {
+      const positions = new Map<string, { x: number; y: number }>();
+      const nodes = new Map<string, Konva.Node>();
+      const stage = e.target.getStage();
+
+      for (const id of state.selectedIds) {
+        const el = state.elements.find((el) => el.id === id);
+        if (el) {
+          positions.set(id, { x: el.x, y: el.y });
+          if (id !== elementId && stage) {
+            const node = stage.findOne(`#${id}`);
+            if (node) nodes.set(id, node);
+          }
+        }
+      }
+
+      dragStartPositions.current = positions;
+      dragStartNodes.current = nodes;
+    },
+    [elementId, state.selectedIds, state.elements]
+  );
+
+  const handleDragMove = useCallback(
+    (e: Konva.KonvaEventObject<DragEvent>) => {
+      if (!state.selectedIds.includes(elementId) || state.selectedIds.length <= 1) return;
+
+      const startPos = dragStartPositions.current.get(elementId);
+      if (!startPos) return;
+
+      const dx = e.target.x() - startPos.x;
+      const dy = e.target.y() - startPos.y;
+
+      for (const [id, node] of dragStartNodes.current) {
+        const start = dragStartPositions.current.get(id);
+        if (start) {
+          node.position({ x: start.x + dx, y: start.y + dy });
+        }
+      }
+
+      e.target.getLayer()?.batchDraw();
+    },
+    [elementId, state.selectedIds]
+  );
+
+  const commitGroupMove = useCallback(
+    (snappedX: number, snappedY: number) => {
+      if (!state.selectedIds.includes(elementId) || state.selectedIds.length <= 1) {
+        moveElements([{ id: elementId, x: snappedX, y: snappedY }]);
+        return;
+      }
+
+      const startPos = dragStartPositions.current.get(elementId);
+      if (!startPos) {
+        moveElements([{ id: elementId, x: snappedX, y: snappedY }]);
+        return;
+      }
+
+      const dx = snappedX - startPos.x;
+      const dy = snappedY - startPos.y;
+
+      const moves: { id: string; x: number; y: number }[] = [];
+      for (const id of state.selectedIds) {
+        const start = dragStartPositions.current.get(id);
+        if (start) {
+          moves.push({ id, x: start.x + dx, y: start.y + dy });
+        }
+      }
+
+      moveElements(moves);
+    },
+    [elementId, state.selectedIds, moveElements]
+  );
+
+  return { handleDragStart, handleDragMove, commitGroupMove };
 }
 
 /**

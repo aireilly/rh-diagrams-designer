@@ -49,7 +49,7 @@ interface CanvasProps {
 }
 
 export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
-  const { state, setSelection, deleteSelected, undo, redo, addConnector, addElement, moveElement, dispatch } = useDiagram();
+  const { state, setSelection, deleteSelected, undo, redo, addConnector, addElement, moveElements, dispatch } = useDiagram();
   const internalStageRef = useRef<Konva.Stage>(null);
   const stageRef = externalStageRef || internalStageRef;
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -297,11 +297,14 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
           const step = e.shiftKey ? 1 : GRID.MINOR;
           const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
           const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
-          for (const id of state.selectedIds) {
-            const el = state.elements.find((el) => el.id === id);
-            if (el) {
-              moveElement(id, el.x + dx, el.y + dy);
-            }
+          const moves = state.selectedIds
+            .map((id) => {
+              const el = state.elements.find((el) => el.id === id);
+              return el ? { id, x: el.x + dx, y: el.y + dy } : null;
+            })
+            .filter((m): m is { id: string; x: number; y: number } => m !== null);
+          if (moves.length > 0) {
+            moveElements(moves);
           }
         }
       }
@@ -368,18 +371,26 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deleteSelected, undo, redo, state.selectedIds, state.elements, state.connectors, moveElement, addElement, setSelection, dispatch]);
+  }, [deleteSelected, undo, redo, state.selectedIds, state.elements, state.connectors, moveElements, addElement, setSelection, dispatch]);
 
-  // Scroll-wheel zoom
+  // Scroll-wheel: plain = vertical scroll, Ctrl = horizontal scroll, Shift = zoom
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const direction = e.deltaY < 0 ? 1 : -1;
-      const next = Math.round(Math.min(ZOOM.MAX, Math.max(ZOOM.MIN, state.zoom + direction * ZOOM.STEP)) * 100) / 100;
-      dispatch({ type: 'SET_ZOOM', zoom: next });
+      if (e.shiftKey) {
+        // Shift+scroll → zoom
+        e.preventDefault();
+        const direction = e.deltaY < 0 ? 1 : -1;
+        const next = Math.round(Math.min(ZOOM.MAX, Math.max(ZOOM.MIN, state.zoom + direction * ZOOM.STEP)) * 100) / 100;
+        dispatch({ type: 'SET_ZOOM', zoom: next });
+      } else if (e.ctrlKey || e.metaKey) {
+        // Ctrl/Cmd+scroll → horizontal scroll
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      }
+      // Plain scroll → default vertical scroll (no preventDefault)
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });

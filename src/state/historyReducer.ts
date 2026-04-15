@@ -78,6 +78,17 @@ function diagramReducer(state: DiagramState, action: DiagramAction): DiagramStat
         ),
       };
 
+    case 'MOVE_ELEMENTS': {
+      const moveMap = new Map(action.moves.map((m) => [m.id, m]));
+      return {
+        ...state,
+        elements: state.elements.map((el) => {
+          const move = moveMap.get(el.id);
+          return move ? { ...el, x: move.x, y: move.y } : el;
+        }),
+      };
+    }
+
     case 'ADD_CONNECTOR':
       return { ...state, connectors: [...state.connectors, action.connector] };
 

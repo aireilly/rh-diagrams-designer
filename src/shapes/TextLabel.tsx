@@ -4,7 +4,7 @@ import type Konva from 'konva';
 import { DiagramElement } from '../types';
 import { FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram, useShapeClick } from '../state/DiagramContext';
+import { useDiagram, useShapeClick, useGroupDrag } from '../state/DiagramContext';
 
 interface TextLabelProps {
   element: DiagramElement;
@@ -12,13 +12,14 @@ interface TextLabelProps {
 }
 
 export default function TextLabel({ element, isSelected }: TextLabelProps) {
-  const { moveElement, updateElement, state } = useDiagram();
+  const { updateElement, state } = useDiagram();
   const handleClick = useShapeClick(element.id);
+  const { handleDragStart, handleDragMove, commitGroupMove } = useGroupDrag(element.id);
   const textRef = useRef<Konva.Text>(null);
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
-    moveElement(element.id, snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
+    commitGroupMove(snapToGrid(e.target.x(), increment), snapToGrid(e.target.y(), increment));
   };
 
   const handleDblClick = () => {
@@ -65,7 +66,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
   };
 
   return (
-    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
+    <Group id={element.id} x={element.x} y={element.y} draggable onClick={handleClick} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd} onDblClick={handleDblClick}>
       {isSelected && (
         <Rect
           width={element.width}

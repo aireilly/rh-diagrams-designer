@@ -4,7 +4,7 @@ import type Konva from 'konva';
 import { DiagramElement, TextPosition } from '../types';
 import { COLORS, FONT_FAMILY, GRID } from '../constants';
 import { snapToGrid } from '../utils/snapGrid';
-import { useDiagram, useShapeClick } from '../state/DiagramContext';
+import { useDiagram, useShapeClick, useGroupDrag } from '../state/DiagramContext';
 
 function textAlign(pos?: TextPosition): string {
   if (!pos || pos === 'top-left' || pos === 'bottom-left') return 'left';
@@ -24,8 +24,9 @@ interface RectShapeProps {
 }
 
 export default function RectShape({ element, isSelected }: RectShapeProps) {
-  const { updateElement, moveElement, state } = useDiagram();
+  const { updateElement, state } = useDiagram();
   const handleClick = useShapeClick(element.id);
+  const { handleDragStart, handleDragMove, commitGroupMove } = useGroupDrag(element.id);
   const groupRef = useRef<Konva.Group>(null);
   const textRef = useRef<Konva.Text>(null);
 
@@ -33,7 +34,7 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
     const increment = state.snapEnabled ? GRID.MINOR : 1;
     const x = snapToGrid(e.target.x(), increment);
     const y = snapToGrid(e.target.y(), increment);
-    moveElement(element.id, x, y);
+    commitGroupMove(x, y);
   };
 
   const handleTransformEnd = () => {
@@ -106,6 +107,8 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
       draggable
       onClick={handleClick}
       onDblClick={handleDblClick}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onTransformEnd={handleTransformEnd}
     >
