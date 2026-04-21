@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type Konva from 'konva';
 import './App.css';
-import { DiagramProvider } from './state/DiagramContext';
+import { DiagramProvider, useDiagram } from './state/DiagramContext';
+import { parseHashData } from './utils/hashImport';
 import Canvas from './components/Canvas';
 import ComponentPanel from './components/ComponentPanel';
 import PropertiesPanel from './components/PropertiesPanel';
@@ -9,12 +10,21 @@ import Toolbar from './components/Toolbar';
 import StatusBar from './components/StatusBar';
 import ExportModal from './components/ExportModal';
 
-function App() {
+function AppContent() {
+  const { dispatch } = useDiagram();
   const [showExport, setShowExport] = useState(false);
   const stageRef = useRef<Konva.Stage>(null);
 
+  useEffect(() => {
+    const state = parseHashData(window.location.hash);
+    if (state) {
+      dispatch({ type: 'LOAD_STATE', state });
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, [dispatch]);
+
   return (
-    <DiagramProvider>
+    <>
       <div className="app">
         <header className="title-bar">
           <span className="title-bar-name">
@@ -41,6 +51,14 @@ function App() {
       {showExport && (
         <ExportModal onClose={() => setShowExport(false)} stageRef={stageRef} />
       )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <DiagramProvider>
+      <AppContent />
     </DiagramProvider>
   );
 }
