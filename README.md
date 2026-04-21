@@ -76,6 +76,37 @@ src/
 | Light Gray | `#e5e5e5` | Backgrounds |
 | White | `#ffffff` | Light fills, text on dark |
 
+## Claude Code skills
+
+This project includes two [Claude Code](https://claude.ai/code) skills in `.claude/skills/` for generating diagrams programmatically:
+
+### diagram-builder
+
+Builds a diagram from scratch through interactive multiple-choice prompts. Walks through three phases:
+
+1. **Structure** — choose element types (boxes, icons), quantities, and labels
+2. **Relationships** — define nesting and connections between elements, pick connector styles
+3. **Annotation** — add numbered callout circles, choose layout direction (LTR or TTB)
+
+Generates the diagram JSON, writes to `diagram.json`, and opens it in the browser.
+
+**Usage:** Ask Claude Code to create a diagram — e.g., *"create a diagram with 3 servers and a load balancer"*.
+
+### screenshot-to-diagram
+
+Converts an existing screenshot or image of a diagram into Red Hat brand style using a 6-phase pipeline:
+
+1. **Inventory** — scan the image for all visual elements, text, and connections
+2. **Classify** — map each element to the closest Red Hat type (filled/outlined/gray/white box, icon, etc.)
+3. **Layout** — position elements on the 760×600 canvas
+4. **Annotate** — convert non-name text (flow labels, descriptions) to numbered callout circles; element names stay as labels
+5. **Confirm** — present a summary with element list, callout legend, and connections for approval
+6. **Generate** — build the JSON, open in browser, and output the callout legend
+
+**Usage:** Provide a screenshot and ask Claude Code to convert it — e.g., *"use the screenshot-to-diagram skill to create an image from this screenshot"*.
+
+Both skills output a `diagram.json` file and open the result in the [visual editor](https://aireilly.github.io/rh-diagrams-designer/) for further refinement.
+
 ## License
 
 This project is licensed under the [Apache License, Version 2.0](LICENSE).

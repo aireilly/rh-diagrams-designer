@@ -26,9 +26,9 @@ npx vitest                           # watch mode
 
 **Data flow:** User action → `dispatch(action)` → `historyReducer` → `diagramReducer` → state update → re-render. All actions are the `DiagramAction` union in `types.ts`.
 
-**Canvas rendering:** Konva `<Stage>` with `<Layer>`. Each shape type (`rect`, `circle`, `icon`, `text`, `network-line`) has its own component in `src/shapes/`. Shared behaviors (`useGroupDrag`, `useShapeClick`) live in `DiagramContext.tsx`.
+**Canvas rendering:** Konva `<Stage>` with `<Layer>`. Each shape type (`rect`, `circle`, `icon`, `text`, `network-line`) has its own component in `src/shapes/`. Shared behaviors (`useGroupDrag`, `useShapeClick`) live in `DiagramContext.tsx`. The Stage is 300px larger than the canvas on each side (`CANVAS.STAGE_PADDING`) so shapes can be parked off-canvas while laying out diagrams. Both Layers are offset by the padding; all pointer-to-canvas conversions use the `pointerToCanvas` helper in `Canvas.tsx`.
 
-**Export pipeline:** `exportSvg.ts` and `exportPng.ts` read the Konva stage to produce downloads (SVG: 760px, PNG: 1520px @ 192 DPI).
+**Export pipeline:** `exportSvg.ts` and `exportPng.ts` read the Konva stage to produce downloads (SVG: 760px, PNG: 1520px @ 192 DPI). Only elements overlapping the canvas area are included — off-canvas shapes are filtered via `isOnCanvas()` from `elementBounds.ts`.
 
 **Diagram file format:** JSON with `{ version: 1, elements, connectors, canvasHeight }`. Serialized via `src/utils/projectFile.ts`. Can also be loaded via URL hash: `#data=<base64-encoded-json>` (parsed by `src/utils/hashImport.ts`).
 
@@ -75,6 +75,15 @@ Add SVG path data to `src/shapes/iconPaths.ts` — it auto-appears in ComponentP
 
 ### Adding a new color
 Add to both `COLORS` and `COLOR_SWATCHES` in `src/constants.ts`. Must be an approved Red Hat brand color.
+
+## Claude Code skills
+
+Two skills in `.claude/skills/` generate diagram JSON files and open them in the browser:
+
+- **`diagram-builder`** — Interactive Q&A flow. Asks structured multiple-choice questions about elements, connections, and layout, then generates the JSON. Use when building a diagram from scratch with no visual reference.
+- **`screenshot-to-diagram`** — Analyzes a screenshot/image of an existing diagram and converts it to RH brand style. Runs a 6-phase pipeline: inventory → classify → layout → annotate (non-name text becomes numbered callout circles) → confirm with user → generate. Use when converting an existing diagram.
+
+Both skills write to `./diagram.json` and open via URL hash: `xdg-open "https://aireilly.github.io/rh-diagrams-designer/#data=$(base64 -w0 ./diagram.json)"`.
 
 ## CI/CD
 
