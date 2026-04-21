@@ -19,7 +19,7 @@ Three-phase questionnaire using `AskUserQuestion` with multiple-choice options.
 ### Phase 2 — Relationships
 
 - **Q4: Nesting** — Only asked if boxes were chosen. Multi-select of auto-generated pairs like `Server 1 → inside Outlined Box "Cluster"`. Option to skip.
-- **Q5: Connections** — Multi-select of element pairs from all permutations. Option for "no connections".
+- **Q5: Connections** — Multi-select of element pairs. If ≤6 elements, offer all pairwise permutations. If >6 elements, ask per-element: "What does [Element X] connect to?" with the remaining elements as choices. Always include a "no connections" / "done" option.
 - **Q6: Connector style** — Per connection (if ≤3) or for all at once: Solid + forward arrow, Solid + bidirectional, Solid + no arrow, Dashed + forward arrow, Dashed + bidirectional, Dashed + no arrow.
 
 ### Phase 3 — Annotation
