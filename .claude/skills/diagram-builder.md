@@ -248,11 +248,8 @@ Determine anchor sides based on relative position of connected elements:
 - Place callout circle at (target.x - 5, target.y - 5).
 - Round to nearest 5px grid.
 
-### Canvas Height Calculation
-- Find the bottommost point: max(element.y + element.height) for all elements.
-- Add 30px margin.
-- Clamp between 300 and 900.
-- Round up to nearest 10px.
+### Canvas Height
+- Always use 600 (the default). Never change the canvas height.
 
 ## Delivery
 
