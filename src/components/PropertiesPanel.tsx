@@ -31,21 +31,29 @@ export default function PropertiesPanel() {
             <svg className="skill-info-icon" width="16" height="16" viewBox="0 0 16 16" fill="#0066cc">
               <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM6.5 7h2v4.5h1V13h-4v-1.5h1V8.5h-1V7h1Z"/>
             </svg>
-            <strong>Claude Code Skill</strong>
+            <strong>Claude Code Skills</strong>
           </div>
-          Build diagrams from the CLI using interactive prompts.
-          <br />
           <a
             className="skill-info-link"
             href="https://raw.githubusercontent.com/aireilly/rh-diagrams-designer/main/.claude/skills/diagram-builder.md"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Download the Claude Code skill
+            Diagram Builder
           </a>
+          {' — '}build diagrams from the CLI using interactive prompts.
           <br />
-          Copy to .claude/skills/
+          <a
+            className="skill-info-link"
+            href="https://raw.githubusercontent.com/aireilly/rh-diagrams-designer/main/.claude/skills/screenshot-to-diagram.md"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Screenshot to Diagram
+          </a>
+          {' — '}convert a screenshot into a Red Hat diagram.
           <br />
+          Copy skills to .claude/skills/
         </div>
       </aside>
     );
