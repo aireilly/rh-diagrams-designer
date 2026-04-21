@@ -24,10 +24,11 @@ function makeElement(overrides: Partial<DiagramElement> = {}): DiagramElement {
 
 describe('historyReducer', () => {
   const initial = createInitialHistoryState();
+  const defaultElementCount = initial.present.elements.length;
 
-  it('starts with empty elements and connectors', () => {
-    expect(initial.present.elements).toEqual([]);
-    expect(initial.present.connectors).toEqual([]);
+  it('starts with default diagram elements and connectors', () => {
+    expect(initial.present.elements).toHaveLength(3);
+    expect(initial.present.connectors).toHaveLength(2);
     expect(initial.past).toEqual([]);
     expect(initial.future).toEqual([]);
   });
@@ -35,8 +36,8 @@ describe('historyReducer', () => {
   it('ADD_ELEMENT adds to elements and pushes to past', () => {
     const el = makeElement();
     const next = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
-    expect(next.present.elements).toHaveLength(1);
-    expect(next.present.elements[0].id).toBe('el-1');
+    expect(next.present.elements).toHaveLength(defaultElementCount + 1);
+    expect(next.present.elements[defaultElementCount].id).toBe('el-1');
     expect(next.past).toHaveLength(1);
     expect(next.future).toEqual([]);
   });
@@ -45,7 +46,7 @@ describe('historyReducer', () => {
     const el = makeElement();
     const afterAdd = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
     const afterUndo = historyReducer(afterAdd, { type: 'UNDO' });
-    expect(afterUndo.present.elements).toEqual([]);
+    expect(afterUndo.present.elements).toHaveLength(defaultElementCount);
     expect(afterUndo.past).toEqual([]);
     expect(afterUndo.future).toHaveLength(1);
   });
@@ -55,7 +56,7 @@ describe('historyReducer', () => {
     const afterAdd = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
     const afterUndo = historyReducer(afterAdd, { type: 'UNDO' });
     const afterRedo = historyReducer(afterUndo, { type: 'REDO' });
-    expect(afterRedo.present.elements).toHaveLength(1);
+    expect(afterRedo.present.elements).toHaveLength(defaultElementCount + 1);
     expect(afterRedo.future).toEqual([]);
   });
 
@@ -83,22 +84,24 @@ describe('historyReducer', () => {
     const el = makeElement();
     const s1 = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
     const s2 = historyReducer(s1, { type: 'UPDATE_ELEMENT', id: 'el-1', changes: { text: 'Updated' } });
-    expect(s2.present.elements[0].text).toBe('Updated');
+    const updated = s2.present.elements.find((e) => e.id === 'el-1');
+    expect(updated?.text).toBe('Updated');
   });
 
   it('DELETE_ELEMENTS removes elements by id', () => {
     const el = makeElement();
     const s1 = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
     const s2 = historyReducer(s1, { type: 'DELETE_ELEMENTS', ids: ['el-1'] });
-    expect(s2.present.elements).toHaveLength(0);
+    expect(s2.present.elements).toHaveLength(defaultElementCount);
   });
 
   it('MOVE_ELEMENT updates x and y', () => {
     const el = makeElement();
     const s1 = historyReducer(initial, { type: 'ADD_ELEMENT', element: el });
     const s2 = historyReducer(s1, { type: 'MOVE_ELEMENT', id: 'el-1', x: 100, y: 200 });
-    expect(s2.present.elements[0].x).toBe(100);
-    expect(s2.present.elements[0].y).toBe(200);
+    const moved = s2.present.elements.find((e) => e.id === 'el-1');
+    expect(moved?.x).toBe(100);
+    expect(moved?.y).toBe(200);
   });
 
   it('SET_SELECTION does not push to history', () => {
