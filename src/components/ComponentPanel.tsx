@@ -270,6 +270,22 @@ export default function ComponentPanel() {
           </button>
         </div>
       </section>
+
+      <div className="skill-info-box">
+        <strong>Claude Code Skill</strong>
+        <br />
+        Build diagrams from the CLI using interactive prompts.
+        <br />
+        <a
+          className="skill-info-link"
+          href="https://raw.githubusercontent.com/aireilly/rh-diagrams-designer/main/.claude/skills/diagram-builder.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Download skill file
+        </a>
+        <span className="skill-info-code">Copy to .claude/skills/</span>
+      </div>
     </aside>
   );
 }

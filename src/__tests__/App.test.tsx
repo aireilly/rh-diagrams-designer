@@ -24,4 +24,10 @@ describe('App', () => {
     expect(screen.getByText(/Physical/)).toBeInTheDocument();
     expect(screen.getByText('Connectors')).toBeInTheDocument();
   });
+
+  it('renders Claude Code skill info box in component panel', () => {
+    render(<App />);
+    expect(screen.getByText(/Claude Code/)).toBeInTheDocument();
+    expect(screen.getByText(/Download skill/i)).toBeInTheDocument();
+  });
 });
