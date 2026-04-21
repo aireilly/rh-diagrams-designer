@@ -112,3 +112,47 @@
   font-size: 13px;
   color: #595959;
 }
+
+.skill-info-box {
+  margin-top: auto;
+  padding: 12px;
+  background: #f5f5f5;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #595959;
+  line-height: 1.5;
+}
+
+.skill-info-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.skill-info-icon {
+  flex-shrink: 0;
+}
+
+.skill-info-box strong {
+  color: #262626;
+}
+
+.skill-info-link {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.skill-info-link:hover {
+  text-decoration: underline;
+}
+
+.skill-info-code {
+  display: block;
+  margin-top: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #3c3c3c;
+}
