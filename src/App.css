@@ -48,6 +48,12 @@ body {
   align-items: center;
   gap: 8px;
   letter-spacing: 0.3px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.title-bar-name:hover {
+  color: #4394e5;
 }
 
 .title-bar-logo {

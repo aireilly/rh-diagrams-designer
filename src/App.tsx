@@ -27,10 +27,10 @@ function AppContent() {
     <>
       <div className="app">
         <header className="title-bar">
-          <span className="title-bar-name">
+          <a className="title-bar-name" href="https://aireilly.github.io/rh-diagrams-designer/" rel="noopener noreferrer">
             <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="Red Hat" className="title-bar-logo" />
             Red Hat Diagram Designer
-          </span>
+          </a>
           <a
             className="title-bar-link"
             href="https://github.com/aireilly/rh-diagrams-designer"
