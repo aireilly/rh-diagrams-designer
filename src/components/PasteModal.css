@@ -1,0 +1,21 @@
+.paste-modal-textarea {
+  width: 100%;
+  height: 200px;
+  padding: 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.paste-modal-textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.paste-modal-error {
+  color: #f0561d;
+  font-size: 13px;
+  margin-top: 8px;
+}
