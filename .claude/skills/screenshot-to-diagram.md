@@ -7,6 +7,22 @@ description: Analyze a screenshot or image of a diagram and convert it into a Re
 
 Convert a screenshot or image of a diagram into a Red Hat Diagrams Designer project file using a structured 6-phase pipeline.
 
+## Style Guidance
+
+When converting existing diagrams to Red Hat brand style, apply these principles:
+
+- **Visual hierarchy** — ensure critical components and flows are visually prominent (use filled/darker boxes for emphasis, outlined/lighter for secondary elements)
+- **Concise labels** — simplify verbose source labels into brief, clear names; move long descriptions into numbered callout circles instead
+- **Icons over custom graphics** — replace non-standard icons or graphics with Red Hat icons where possible. If no matching icon exists, use a labeled box
+- **Consistent styling** — all boxes, lines, colors, and spacing must follow Red Hat brand standards (the editor enforces this automatically)
+- **Remove clutter** — filter out unnecessary decorative elements from the source; keep only information essential to understanding the diagram
+- **Systemic view** — if converting multiple related diagrams, ensure they use the same visual language and layout patterns for coherence
+
+Target diagram types:
+- **Data flow** — architecture, general, sequence, or workflow diagrams showing how information moves through systems
+- **Network topology** — infrastructure diagrams showing connections between servers, networks, or services
+- **Swimlane** — process diagrams showing parallel activities across different actors or roles
+
 ## Pipeline
 
 Run these phases in order. Do not skip phases.

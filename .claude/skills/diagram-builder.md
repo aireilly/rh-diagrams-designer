@@ -7,6 +7,21 @@ description: Build Red Hat Diagrams Designer JSON files through interactive mult
 
 Build a Red Hat Diagrams Designer project file by asking the user structured questions, then generate the JSON and open it in the browser.
 
+## Style Guidance
+
+Follow Red Hat's technical diagram guidelines:
+
+- **Use visual hierarchy** — emphasize critical components and flows so viewers can quickly understand priorities
+- **Concise labels** — keep text brief and descriptive; avoid redundant or overly long labels
+- **Icons judiciously** — only use the provided Red Hat icons. If a needed icon isn't available, use a labeled box instead of custom icons
+- **On-brand always** — all diagrams must comply with Red Hat's color, typography, and spacing standards (enforced by the editor)
+- **Systemic thinking** — if you're creating multiple diagrams for the same topic, ensure they follow a consistent visual language and complement each other
+
+Common diagram types the editor supports:
+- **Data flow** — architecture, general, sequence, workflow diagrams
+- **Network topology** — illustrating connections between infrastructure components
+- **Swimlane** — showing parallel processes or responsibilities across actors
+
 ## Interaction Flow
 
 Use `AskUserQuestion` with multiple-choice options for all questions. Three phases:
