@@ -40,3 +40,11 @@ export function getElementBounds(el: DiagramElement): { x: number; y: number; wi
 
   return { x: el.x, y: el.y, width: el.width, height: el.height };
 }
+
+/**
+ * Returns true if any part of the element's bounding box overlaps the canvas area.
+ */
+export function isOnCanvas(el: DiagramElement, canvasWidth: number, canvasHeight: number): boolean {
+  const b = getElementBounds(el);
+  return b.x + b.width > 0 && b.x < canvasWidth && b.y + b.height > 0 && b.y < canvasHeight;
+}

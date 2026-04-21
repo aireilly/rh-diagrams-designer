@@ -61,6 +61,7 @@ export const CANVAS = {
   WIDTH: 760,
   MAX_HEIGHT: 900,
   DEFAULT_HEIGHT: 600,
+  STAGE_PADDING: 300,
 } as const;
 
 export const EXPORT_SETTINGS = {

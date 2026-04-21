@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type Konva from 'konva';
 import { DiagramAction, DiagramState, DiagramElement, Connector } from '../types';
+import { CANVAS } from '../constants';
 import { historyReducer, createInitialHistoryState, saveStateToStorage } from './historyReducer';
 
 interface DiagramContextValue {
@@ -228,8 +229,8 @@ export function useShapeClick(elementId: string) {
         const stage = e.target.getStage();
         const pointer = stage?.getPointerPosition();
         if (pointer) {
-          const x = pointer.x / state.zoom;
-          const y = pointer.y / state.zoom;
+          const x = pointer.x / state.zoom - CANVAS.STAGE_PADDING;
+          const y = pointer.y / state.zoom - CANVAS.STAGE_PADDING;
           const overlapping = state.elements.filter((el) =>
             x >= el.x && x <= el.x + el.width &&
             y >= el.y && y <= el.y + el.height

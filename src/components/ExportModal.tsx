@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import type Konva from 'konva';
 import { useDiagram } from '../state/DiagramContext';
 import { generateSvg } from '../utils/exportSvg';
+import { exportPng, downloadBlob } from '../utils/exportPng';
 import { downloadFile, serializeProject } from '../utils/projectFile';
 import './ExportModal.css';
 
@@ -31,27 +33,11 @@ export default function ExportModal({ onClose, stageRef }: ExportModalProps) {
   };
 
   const handleExportPng = async () => {
-    const stage = stageRef?.current as { toBlob?: (opts: Record<string, unknown>) => void } | null;
-    if (!stage?.toBlob) return;
+    const stage = stageRef?.current as Konva.Stage | null;
+    if (!stage) return;
 
-    const { EXPORT_SETTINGS, CANVAS } = await import('../constants');
-    const scale = EXPORT_SETTINGS.PNG_WIDTH / CANVAS.WIDTH;
-    stage.toBlob({
-      pixelRatio: scale,
-      mimeType: 'image/png',
-      callback: (blob: Blob | null) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${filename || 'diagram'}.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }
-      },
-    });
+    const blob = await exportPng(stage, state.elements);
+    downloadBlob(blob, `${filename || 'diagram'}.png`);
   };
 
   const handleSaveProject = () => {

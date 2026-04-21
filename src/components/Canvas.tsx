@@ -69,6 +69,15 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
   const isNetworkLineMode = state.tool === 'network-line';
   const width = CANVAS.WIDTH;
   const height = state.canvasHeight;
+  const pad = CANVAS.STAGE_PADDING;
+
+  const pointerToCanvas = useCallback(
+    (pointer: { x: number; y: number }) => ({
+      x: pointer.x / state.zoom - pad,
+      y: pointer.y / state.zoom - pad,
+    }),
+    [state.zoom, pad]
+  );
 
   const handleStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -138,8 +147,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      const x = pointer.x / state.zoom;
-      const y = pointer.y / state.zoom;
+      const { x, y } = pointerToCanvas(pointer);
 
       if (isNetworkLineMode) {
         const snappedX = state.snapEnabled ? snapToGrid(x, GRID.MINOR) : x;
@@ -166,8 +174,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         if (!pointer) return;
 
         const origin = networkLineOrigin.current;
-        const rawX = pointer.x / state.zoom;
-        const rawY = pointer.y / state.zoom;
+        const { x: rawX, y: rawY } = pointerToCanvas(pointer);
         const dx = Math.abs(rawX - origin.x);
         const dy = Math.abs(rawY - origin.y);
 
@@ -205,7 +212,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
       const pointer = stage.getPointerPosition();
       if (!pointer) return;
 
-      setSelRect({ ...selRect, x2: pointer.x / state.zoom, y2: pointer.y / state.zoom });
+      const canvasPos = pointerToCanvas(pointer);
+      setSelRect({ ...selRect, x2: canvasPos.x, y2: canvasPos.y });
     },
     [selRect, state.zoom, state.snapEnabled, state.elements]
   );
@@ -462,8 +470,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
       <div className="canvas-stage-wrapper">
       <Stage
         ref={stageRef as React.RefObject<Konva.Stage>}
-        width={width * state.zoom}
-        height={height * state.zoom}
+        width={(width + 2 * pad) * state.zoom}
+        height={(height + 2 * pad) * state.zoom}
         scaleX={state.zoom}
         scaleY={state.zoom}
         onClick={handleStageClick}
@@ -472,11 +480,12 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         onMouseUp={handleMouseUp}
         className="diagram-stage"
       >
-        <Layer>
+        <Layer x={pad} y={pad}>
+          <Rect x={-pad} y={-pad} width={width + 2 * pad} height={height + 2 * pad} fill="#f0f0f0" listening={false} />
           <Rect x={0} y={0} width={width} height={height} fill={COLORS.WHITE} listening={false} />
           {state.snapEnabled && <GridLines width={width} height={height} />}
         </Layer>
-        <Layer>
+        <Layer x={pad} y={pad}>
           {state.elements.filter((el) => el.type === 'network-line').map(renderElement)}
           {state.connectors.map((c) => (
             <ConnectorLine

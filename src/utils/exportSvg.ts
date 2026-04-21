@@ -1,6 +1,7 @@
 import { DiagramState, DiagramElement, Connector, AnchorSide, TextPosition } from '../types';
 import { CANVAS, FONT_FAMILY, CALLOUT_CIRCLE, COLORS, ARROWHEAD } from '../constants';
 import { ICONS } from '../shapes/iconPaths';
+import { isOnCanvas } from './elementBounds';
 
 function escapeXml(str: string): string {
   return str
@@ -190,12 +191,17 @@ export function generateSvg(state: DiagramState): string {
   svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`);
   svgParts.push(`  <rect width="${width}" height="${height}" fill="#ffffff" />`);
 
-  for (const el of state.elements) {
+  const visibleElements = state.elements.filter((el) => isOnCanvas(el, width, height));
+  const visibleIds = new Set(visibleElements.map((el) => el.id));
+
+  for (const el of visibleElements) {
     svgParts.push(renderElement(el));
   }
 
   for (const conn of state.connectors) {
-    svgParts.push(renderConnector(conn, state.elements));
+    if (visibleIds.has(conn.fromId) && visibleIds.has(conn.toId)) {
+      svgParts.push(renderConnector(conn, visibleElements));
+    }
   }
 
   svgParts.push(`</svg>`);

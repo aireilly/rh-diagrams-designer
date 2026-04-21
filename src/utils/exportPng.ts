@@ -1,12 +1,29 @@
 import Konva from 'konva';
 import { EXPORT_SETTINGS, CANVAS } from '../constants';
+import { DiagramElement } from '../types';
+import { isOnCanvas } from './elementBounds';
 
-export function exportPng(stage: Konva.Stage): Promise<Blob> {
+function hideOffCanvasNodes(stage: Konva.Stage, elements: DiagramElement[], canvasWidth: number, canvasHeight: number): Konva.Node[] {
+  const hidden: Konva.Node[] = [];
+  for (const el of elements) {
+    if (!isOnCanvas(el, canvasWidth, canvasHeight)) {
+      const node = stage.findOne(`#${el.id}`);
+      if (node && node.visible()) {
+        node.hide();
+        hidden.push(node);
+      }
+    }
+  }
+  return hidden;
+}
+
+export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = []): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const scale = EXPORT_SETTINGS.PNG_WIDTH / CANVAS.WIDTH;
+    const canvasWidth = stage.width() / stage.scaleX();
+    const canvasHeight = stage.height() / stage.scaleY();
     const layers = stage.getLayers();
 
-    // Hide grid layer (first layer) and transformer nodes during export
     const gridLayer = layers[0];
     const contentLayer = layers[1];
     const transformer = contentLayer?.findOne('Transformer');
@@ -14,12 +31,13 @@ export function exportPng(stage: Konva.Stage): Promise<Blob> {
     gridLayer?.hide();
     transformer?.hide();
 
-    // Add temporary white background to content layer
+    const hiddenNodes = hideOffCanvasNodes(stage, elements, canvasWidth, canvasHeight);
+
     const bg = new Konva.Rect({
       x: 0,
       y: 0,
-      width: stage.width() / stage.scaleX(),
-      height: stage.height() / stage.scaleY(),
+      width: canvasWidth,
+      height: canvasHeight,
       fill: '#ffffff',
     });
     contentLayer?.add(bg);
@@ -30,10 +48,10 @@ export function exportPng(stage: Konva.Stage): Promise<Blob> {
       pixelRatio: scale,
       mimeType: 'image/png',
       callback: (blob) => {
-        // Restore everything
         bg.destroy();
         gridLayer?.show();
         transformer?.show();
+        for (const node of hiddenNodes) node.show();
         contentLayer?.batchDraw();
         gridLayer?.batchDraw();
 
