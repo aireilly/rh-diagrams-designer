@@ -41,9 +41,11 @@ export default function PropertiesPanel() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Download skill file
+            Download the Claude Code skill
           </a>
-          <span className="skill-info-code">Copy to .claude/skills/</span>
+          <br />
+          Copy to .claude/skills/
+          <br />
         </div>
       </aside>
     );
