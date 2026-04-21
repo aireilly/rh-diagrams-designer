@@ -11,6 +11,12 @@ describe('App', () => {
     expect(screen.getByText('Export')).toBeInTheDocument();
   });
 
+  it('renders Paste button instead of Select button', () => {
+    render(<App />);
+    expect(screen.getByText('Paste')).toBeInTheDocument();
+    expect(screen.queryByText('Select')).not.toBeInTheDocument();
+  });
+
   it('renders component panel sections', () => {
     render(<App />);
     expect(screen.getByText('Boxes')).toBeInTheDocument();

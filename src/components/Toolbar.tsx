@@ -3,6 +3,7 @@ import { useDiagram } from '../state/DiagramContext';
 import { ZOOM, COLORS } from '../constants';
 import { DiagramElement } from '../types';
 import { serializeProject, deserializeProject, downloadFile, loadFile } from '../utils/projectFile';
+import PasteModal from './PasteModal';
 import './Toolbar.css';
 
 const CLUSTER_GAP = 5;
@@ -18,6 +19,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
   const { state, dispatch, undo, redo, canUndo, canRedo, updateElement, addElement } = useDiagram();
   const lastAlignAxis = useRef<'h' | 'v'>('h');
   const [distributeGap, setDistributeGap] = useState(20);
+  const [showPaste, setShowPaste] = useState(false);
 
   const handleZoomIn = () => {
     const next = Math.min(state.zoom + ZOOM.STEP, ZOOM.MAX);
@@ -31,10 +33,6 @@ export default function Toolbar({ onExport }: ToolbarProps) {
 
   const handleZoomFit = () => {
     dispatch({ type: 'SET_ZOOM', zoom: 1 });
-  };
-
-  const handleSelectTool = () => {
-    dispatch({ type: 'SET_TOOL', tool: 'select' });
   };
 
   const handleCluster = () => {
@@ -223,12 +221,8 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         <button className="toolbar-btn" onClick={handleLoad} title="Load Project">
           Load
         </button>
-        <button
-          className={`toolbar-btn ${state.tool === 'select' ? 'active' : ''}`}
-          onClick={handleSelectTool}
-          title="Select (V)"
-        >
-          Select
+        <button className="toolbar-btn" onClick={() => setShowPaste(true)} title="Paste Diagram JSON">
+          Paste
         </button>
       </div>
 
@@ -349,6 +343,7 @@ export default function Toolbar({ onExport }: ToolbarProps) {
           Export
         </button>
       </div>
+      {showPaste && <PasteModal onClose={() => setShowPaste(false)} />}
     </header>
   );
 }
