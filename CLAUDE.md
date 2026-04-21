@@ -1,90 +1,55 @@
-# CLAUDE.md — Red Hat Diagrams Designer
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this project is
 
-A browser-based WYSIWYG block diagram editor for Red Hat technical documentation. It enforces Red Hat brand standards (colors, fonts, shapes) so every diagram is on-brand. Runs entirely client-side with no backend.
+A browser-based WYSIWYG block diagram editor for Red Hat technical documentation. Enforces Red Hat brand standards (colors, fonts, shapes) so every diagram is on-brand. Runs entirely client-side with no backend. Deployed to GitHub Pages at `/rh-diagrams-designer/`.
 
-## Quick reference
+## Commands
 
 ```bash
-npm install          # install dependencies
-npm run dev          # start dev server → http://localhost:5173
-npm run build        # type-check (tsc) + production build → dist/
-npm run lint         # run ESLint
-npx vitest run       # run tests once
-npx vitest           # run tests in watch mode
-make help            # show all Makefile targets
-```
-
-## Tech stack
-
-- **React 18** + **TypeScript** (strict mode)
-- **Konva.js** / **react-konva** for 2D canvas rendering
-- **Vite** for bundling and dev server
-- **Vitest** + **React Testing Library** for tests
-- **ESLint** with typescript-eslint, react-hooks, and react-refresh plugins
-- **GitHub Actions** deploys to GitHub Pages on push to `main`
-
-## Project structure
-
-```
-src/
-├── components/      # UI panels: Canvas, Toolbar, ComponentPanel, PropertiesPanel, StatusBar, ExportModal
-├── shapes/          # Canvas shape renderers: RectShape, CircleCallout, TextLabel, IconShape, ConnectorLine
-├── state/           # DiagramContext (React Context provider) + historyReducer (undo/redo)
-├── utils/           # exportSvg, exportPng, projectFile (save/load JSON), snapGrid
-├── __tests__/       # Test files (colocated in one directory)
-├── __mocks__/       # Konva mocks for tests (canvas can't run in jsdom)
-├── constants.ts     # Brand colors, fonts, grid settings, canvas dimensions
-├── types.ts         # All TypeScript interfaces and type aliases
-└── App.tsx          # Root layout composing all panels
+npm install                          # install dependencies
+npm run dev                          # dev server → http://localhost:5173
+npm run build                        # type-check (tsc -b) + production build → dist/
+npm run lint                         # ESLint
+npx vitest run                       # run all tests once
+npx vitest run src/__tests__/foo.ts  # run a single test file
+npx vitest                           # watch mode
 ```
 
 ## Architecture
 
-**State management:** React Context + useReducer. `DiagramContext.tsx` provides state and dispatch via `useDiagram()` hook. `historyReducer.ts` wraps the diagram reducer with undo/redo (past/present/future stacks). State auto-persists to localStorage.
+**State management:** React Context + useReducer in two layers. `historyReducer.ts` wraps `diagramReducer` with undo/redo (past/present/future stacks). `DiagramContext.tsx` exposes both via the `useDiagram()` hook. State auto-persists to localStorage (excluding `selectedIds`, `tool`, and `networkLineColor`).
 
-**Data flow:** User action -> `dispatch(action)` -> `diagramReducer` -> state update -> re-render. All actions are typed in `types.ts` as the `DiagramAction` union.
+**History vs non-history actions:** Actions listed in `NON_HISTORY_ACTIONS` (`SET_SELECTION`, `SET_ZOOM`, `SET_SNAP`, `SET_TOOL`, `SET_NETWORK_LINE_COLOR`) update state without pushing to the undo stack. All other actions are history-tracked automatically.
 
-**Canvas rendering:** Konva `<Stage>` with `<Layer>` containing shape components. Each shape type has its own component in `src/shapes/`.
+**Data flow:** User action → `dispatch(action)` → `historyReducer` → `diagramReducer` → state update → re-render. All actions are the `DiagramAction` union in `types.ts`.
 
-**Export pipeline:** `exportSvg.ts` and `exportPng.ts` read the Konva stage to generate downloads at specified dimensions (SVG: 760px, PNG: 1520px @ 192 DPI).
+**Canvas rendering:** Konva `<Stage>` with `<Layer>`. Each shape type (`rect`, `circle`, `icon`, `text`, `network-line`) has its own component in `src/shapes/`. Shared behaviors (`useGroupDrag`, `useShapeClick`) live in `DiagramContext.tsx`.
+
+**Export pipeline:** `exportSvg.ts` and `exportPng.ts` read the Konva stage to produce downloads (SVG: 760px, PNG: 1520px @ 192 DPI).
+
+**Diagram file format:** JSON with `{ version: 1, elements, connectors, canvasHeight }`. Serialized via `src/utils/projectFile.ts`. Can also be loaded via URL hash: `#data=<base64-encoded-json>` (parsed by `src/utils/hashImport.ts`).
 
 ## Coding conventions
 
-### TypeScript
-- Strict mode is on (`strict: true`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`)
-- All types go in `src/types.ts`; all constants in `src/constants.ts`
-- Use `as const` for constant objects and arrays
+- **Types** go in `src/types.ts`; **constants** in `src/constants.ts`. Use `as const` for constant objects/arrays.
+- Functional components only. Access state via `useDiagram()` — no prop drilling.
+- PascalCase component files, each with a co-located `.css` file of the same name.
+- Use `COLORS` from `constants.ts` — never hardcode hex values in components. Font is always `Red Hat Text`.
+- Git commits: `type: description` (`feat:`, `fix:`, `style:`, `refactor:`, `test:`, `docs:`, `chore:`).
 
-### React
-- Functional components with hooks only (no class components)
-- State injection via Context — no prop drilling
-- Use `useDiagram()` to access state and dispatch
-- Component files are PascalCase (e.g., `Canvas.tsx`)
-- One CSS file per component, same name (e.g., `Canvas.css`)
+## Testing
 
-### Style
-- Each component imports its own `.css` file
-- Use Red Hat brand colors from `COLORS` in `constants.ts` — never hardcode hex values in components
-- Font family is always `Red Hat Text`
-
-### Testing
-- Tests live in `src/__tests__/`
-- Konva must be mocked in tests (see `src/__mocks__/`)
-- Use Vitest + React Testing Library conventions
-- Run `npx vitest run` to verify changes don't break existing tests
-
-### Git commits
-- Format: `type: description` (e.g., `feat:`, `fix:`, `style:`, `docs:`, `refactor:`, `test:`)
-- Keep messages concise (one line preferred)
+Tests live in `src/__tests__/`. Konva cannot run in jsdom, so `vite.config.ts` aliases `konva` and `react-konva` to mock implementations in `src/__mocks__/`. If you add a new Konva API usage in a tested component, you may need to extend those mocks.
 
 ## Brand constraints
 
-This editor intentionally limits choices to enforce Red Hat brand compliance:
+This editor intentionally limits choices for Red Hat brand compliance:
 
-- **Colors:** Only the 13 palette colors defined in `COLORS` / `COLOR_SWATCHES` in `constants.ts`
-- **Fonts:** Red Hat Text only, sizes 10-16px, weights bold/medium
+- **Colors:** Only the 13 palette colors in `COLORS` / `COLOR_SWATCHES` in `constants.ts`
+- **Fonts:** Red Hat Text only, sizes 10–16px, weights bold/medium
 - **Canvas:** Fixed width 760px, max height 900px
 - **Grid:** 5px minor / 10px major snap grid
 - **Box variants:** filled (blue), outlined (blue stroke), gray, white — defined in `BOX_VARIANTS`
@@ -95,33 +60,29 @@ Do not add arbitrary colors, fonts, or unconstrained styling options.
 
 ### Adding a new shape type
 1. Add the type to `ShapeType` in `src/types.ts`
-2. Create a renderer component in `src/shapes/`
+2. Create a renderer in `src/shapes/`
 3. Register it in `Canvas.tsx` render logic
 4. Add a drag source in `ComponentPanel.tsx`
 5. Handle its properties in `PropertiesPanel.tsx`
 
 ### Adding a new icon
-1. Add the SVG path data to `src/shapes/iconPaths.ts`
-2. It will automatically appear in the ComponentPanel icon grid
-
-### Adding a new color
-1. Add it to `COLORS` and `COLOR_SWATCHES` in `src/constants.ts`
-2. Verify it is an approved Red Hat brand color
+Add SVG path data to `src/shapes/iconPaths.ts` — it auto-appears in ComponentPanel.
 
 ### Adding a new action
-1. Add the action type to the `DiagramAction` union in `src/types.ts`
-2. Handle it in `diagramReducer` inside `src/state/DiagramContext.tsx`
-3. History-tracked actions are wrapped automatically by `historyReducer.ts`
+1. Add to the `DiagramAction` union in `src/types.ts`
+2. Handle in `diagramReducer` inside `src/state/historyReducer.ts`
+3. If the action should NOT be undoable, add its type to `NON_HISTORY_ACTIONS`
+
+### Adding a new color
+Add to both `COLORS` and `COLOR_SWATCHES` in `src/constants.ts`. Must be an approved Red Hat brand color.
 
 ## CI/CD
 
-- GitHub Actions runs on every push to `main` (`.github/workflows/deploy.yml`)
-- Pipeline: checkout -> Node 20 setup -> `npm ci` -> `npm run build` -> deploy to GitHub Pages
-- There is no CI test step yet — run tests locally before pushing
+GitHub Actions (`.github/workflows/deploy.yml`) runs on push to `main`: checkout → Node 20 → `npm ci` → `npm run build` → deploy to GitHub Pages. No CI test step — run tests locally before pushing.
 
 ## Before submitting changes
 
-1. `npm run lint` — no ESLint errors
+1. `npm run lint` — no errors
 2. `npx vitest run` — all tests pass
-3. `npm run build` — clean build with no type errors
-4. Test your changes visually in the browser (`npm run dev`)
+3. `npm run build` — clean build, no type errors
+4. Test visually in the browser (`npm run dev`)
