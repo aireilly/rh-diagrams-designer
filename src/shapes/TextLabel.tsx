@@ -85,6 +85,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
         fontFamily={element.fontFamily || FONT_FAMILY}
         fontStyle={element.fontWeight === 'bold' ? 'bold' : '500'}
         fill={element.textColor}
+        wrap="word"
       />
     </Group>
   );

@@ -11,6 +11,25 @@ function escapeXml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function wrapTextLines(text: string, maxWidth: number, fontSize: number, isBold: boolean): string[] {
+  const charWidth = fontSize * (isBold ? 0.6 : 0.55);
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length * charWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
 function renderRect(el: DiagramElement): string {
   const parts: string[] = [];
 
@@ -35,16 +54,34 @@ function renderRect(el: DiagramElement): string {
   if (el.text) {
     const fontStyle = el.fontWeight === 'bold' ? 'font-weight:bold' : 'font-weight:500';
     const pos: TextPosition = el.textPosition || 'top-left';
-    let tx: number, ty: number, anchor: string;
-
-    if (pos === 'top-left') { tx = el.x + 8; ty = el.y + 8 + el.fontSize; anchor = 'start'; }
-    else if (pos === 'top-right') { tx = el.x + el.width - 8; ty = el.y + 8 + el.fontSize; anchor = 'end'; }
-    else if (pos === 'bottom-left') { tx = el.x + 8; ty = el.y + el.height - 8; anchor = 'start'; }
-    else if (pos === 'bottom-right') { tx = el.x + el.width - 8; ty = el.y + el.height - 8; anchor = 'end'; }
-    else { tx = el.x + el.width / 2; ty = el.y + el.height / 2 + el.fontSize / 3; anchor = 'middle'; }
-
     const fontFam = el.fontFamily || FONT_FAMILY;
-    parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`);
+    const isBold = el.fontWeight === 'bold';
+    const availableWidth = el.width - 16;
+    const lines = wrapTextLines(el.text, availableWidth, el.fontSize, isBold);
+    const lineHeight = el.fontSize * 1.2;
+
+    let tx: number, anchor: string, ty: number;
+
+    if (pos === 'top-left' || pos === 'bottom-left') { tx = el.x + 8; anchor = 'start'; }
+    else if (pos === 'top-right' || pos === 'bottom-right') { tx = el.x + el.width - 8; anchor = 'end'; }
+    else { tx = el.x + el.width / 2; anchor = 'middle'; }
+
+    if (pos === 'top-left' || pos === 'top-right') {
+      ty = el.y + 8 + el.fontSize;
+    } else if (pos === 'bottom-left' || pos === 'bottom-right') {
+      ty = el.y + el.height - 8 - (lines.length - 1) * lineHeight;
+    } else {
+      ty = el.y + (el.height - lines.length * lineHeight) / 2 + el.fontSize;
+    }
+
+    if (lines.length === 1) {
+      parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(lines[0])}</text>`);
+    } else {
+      const tspans = lines.map((line, i) =>
+        `<tspan x="${tx}" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`
+      ).join('');
+      parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${tspans}</text>`);
+    }
   }
 
   return parts.join('\n');
@@ -60,7 +97,17 @@ function renderCircle(el: DiagramElement): string {
 function renderText(el: DiagramElement): string {
   const fontStyle = el.fontWeight === 'bold' ? 'font-weight:bold' : 'font-weight:500';
   const fontFam = el.fontFamily || FONT_FAMILY;
-  return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`;
+  const isBold = el.fontWeight === 'bold';
+  const lines = wrapTextLines(el.text, el.width, el.fontSize, isBold);
+  const lineHeight = el.fontSize * 1.2;
+
+  if (lines.length === 1) {
+    return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(lines[0])}</text>`;
+  }
+  const tspans = lines.map((line, i) =>
+    `<tspan x="${el.x}" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`
+  ).join('');
+  return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${tspans}</text>`;
 }
 
 function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramElement, offset = 0): { x: number; y: number; dir: string } {

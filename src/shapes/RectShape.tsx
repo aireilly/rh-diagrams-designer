@@ -139,6 +139,7 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
         fontFamily={element.fontFamily || FONT_FAMILY}
         fontStyle={element.fontWeight === 'bold' ? 'bold' : '500'}
         fill={element.textColor}
+        wrap="word"
         listening={false}
         padding={8}
       />
