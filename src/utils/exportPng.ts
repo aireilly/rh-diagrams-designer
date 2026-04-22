@@ -1,5 +1,5 @@
 import Konva from 'konva';
-import { EXPORT_SETTINGS, CANVAS } from '../constants';
+import { EXPORT_SETTINGS, CANVAS, FONT_FAMILY } from '../constants';
 import { DiagramElement } from '../types';
 import { isOnCanvas } from './elementBounds';
 
@@ -17,7 +17,7 @@ function hideOffCanvasNodes(stage: Konva.Stage, elements: DiagramElement[], canv
   return hidden;
 }
 
-export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = []): Promise<Blob> {
+export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = [], filename?: string): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const scale = EXPORT_SETTINGS.PNG_WIDTH / CANVAS.WIDTH;
     const canvasWidth = stage.width() / stage.scaleX();
@@ -42,6 +42,22 @@ export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = []): 
     });
     contentLayer?.add(bg);
     bg.moveToBottom();
+
+    let watermark: Konva.Text | null = null;
+    if (filename) {
+      watermark = new Konva.Text({
+        x: 0,
+        y: canvasHeight - 9,
+        width: canvasWidth - 4,
+        text: filename,
+        fontSize: 5,
+        fontFamily: FONT_FAMILY,
+        fill: '#e8e8e8',
+        align: 'right',
+      });
+      contentLayer?.add(watermark);
+    }
+
     contentLayer?.batchDraw();
 
     stage.toBlob({
@@ -49,6 +65,7 @@ export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = []): 
       mimeType: 'image/png',
       callback: (blob) => {
         bg.destroy();
+        watermark?.destroy();
         gridLayer?.show();
         transformer?.show();
         for (const node of hiddenNodes) node.show();

@@ -1,10 +1,11 @@
-import { Arrow, Line } from 'react-konva';
+import { Arrow, Circle, Line } from 'react-konva';
 import type Konva from 'konva';
 import { AnchorSide, Connector, DiagramElement } from '../types';
-import { ARROWHEAD, COLORS } from '../constants';
+import { ARROWHEAD, COLORS, GRID } from '../constants';
 import { useDiagram } from '../state/DiagramContext';
 import { getElementBounds } from '../utils/elementBounds';
 import { ICONS } from './iconPaths';
+import { snapToGrid } from '../utils/snapGrid';
 
 interface ConnectorLineProps {
   connector: Connector;
@@ -55,6 +56,7 @@ function getAnchorPoint(
 }
 
 const STUB_LENGTH = 20;
+const HANDLE_RADIUS = 4;
 
 function buildOrthogonalPath(
   from: { x: number; y: number; dir: string },
@@ -108,7 +110,7 @@ function buildOrthogonalPath(
 }
 
 export default function ConnectorLine({ connector, isSelected }: ConnectorLineProps) {
-  const { state, setSelection } = useDiagram();
+  const { state, setSelection, dispatch } = useDiagram();
 
   const fromEl = state.elements.find((e) => e.id === connector.fromId);
   const toEl = state.elements.find((e) => e.id === connector.toId);
@@ -118,7 +120,9 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
   const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
   const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
 
-  const points = buildOrthogonalPath(from, to);
+  const points = connector.points && connector.points.length >= 4
+    ? [from.x, from.y, ...connector.points, to.x, to.y]
+    : buildOrthogonalPath(from, to);
 
   const dashEnabled = connector.lineType === 'dashed';
   const dash = dashEnabled ? [4, 4] : undefined;
@@ -129,9 +133,11 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
     setSelection([connector.id]);
   };
 
+  const color = isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY);
+
   const commonProps = {
     points,
-    stroke: isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY),
+    stroke: color,
     strokeWidth: isSelected ? 2 : connector.strokeWidth,
     dash,
     dashEnabled,
@@ -140,7 +146,6 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
     perfectDrawEnabled: false,
   };
 
-  const color = isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY);
   const arrowProps = {
     pointerLength: arrowSize,
     pointerWidth: arrowSize,
@@ -148,23 +153,95 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
     strokeScaleEnabled: false,
   };
 
+  const reversedPoints: number[] = [];
+  for (let i = points.length - 2; i >= 0; i -= 2) {
+    reversedPoints.push(points[i], points[i + 1]);
+  }
+
+  let lineElement: React.ReactNode;
   if (connector.arrowDirection === 'none') {
-    return <Line {...commonProps} strokeScaleEnabled={false} />;
-  }
-
-  if (connector.arrowDirection === 'backward') {
-    return <Arrow {...commonProps} {...arrowProps} points={[...points].reverse()} />;
-  }
-
-  if (connector.arrowDirection === 'bidirectional') {
-    return (
+    lineElement = <Line {...commonProps} strokeScaleEnabled={false} />;
+  } else if (connector.arrowDirection === 'backward') {
+    lineElement = <Arrow {...commonProps} {...arrowProps} points={reversedPoints} />;
+  } else if (connector.arrowDirection === 'bidirectional') {
+    lineElement = (
       <>
         <Arrow {...commonProps} {...arrowProps} />
-        <Arrow {...commonProps} {...arrowProps} points={[...points].reverse()} />
+        <Arrow {...commonProps} {...arrowProps} points={reversedPoints} />
       </>
     );
+  } else {
+    lineElement = <Arrow {...commonProps} {...arrowProps} />;
   }
 
-  // forward
-  return <Arrow {...commonProps} {...arrowProps} />;
+  const handles: React.ReactNode[] = [];
+  if (isSelected) {
+    const numPairs = points.length / 2;
+    for (let seg = 1; seg < numPairs - 2; seg++) {
+      const x1 = points[seg * 2];
+      const y1 = points[seg * 2 + 1];
+      const x2 = points[(seg + 1) * 2];
+      const y2 = points[(seg + 1) * 2 + 1];
+      const midX = (x1 + x2) / 2;
+      const midY = (y1 + y2) / 2;
+      const isHorizontal = Math.abs(y1 - y2) < 1;
+      const segIdx = seg;
+
+      handles.push(
+        <Circle
+          key={`seg-${segIdx}`}
+          x={midX}
+          y={midY}
+          radius={HANDLE_RADIUS}
+          fill="#4a90d9"
+          stroke="#ffffff"
+          strokeWidth={1}
+          draggable
+          onClick={(e: Konva.KonvaEventObject<MouseEvent>) => {
+            e.cancelBubble = true;
+          }}
+          onMouseEnter={(e: Konva.KonvaEventObject<MouseEvent>) => {
+            const stage = e.target.getStage();
+            if (stage) stage.container().style.cursor = isHorizontal ? 'ns-resize' : 'ew-resize';
+          }}
+          onMouseLeave={(e: Konva.KonvaEventObject<MouseEvent>) => {
+            const stage = e.target.getStage();
+            if (stage) stage.container().style.cursor = 'default';
+          }}
+          onDragMove={(e: Konva.KonvaEventObject<DragEvent>) => {
+            if (isHorizontal) {
+              e.target.x(midX);
+            } else {
+              e.target.y(midY);
+            }
+          }}
+          onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
+            const newPoints = [...points];
+            const increment = state.snapEnabled ? GRID.MINOR : 1;
+            if (isHorizontal) {
+              const newY = snapToGrid(e.target.y(), increment);
+              newPoints[segIdx * 2 + 1] = newY;
+              newPoints[(segIdx + 1) * 2 + 1] = newY;
+            } else {
+              const newX = snapToGrid(e.target.x(), increment);
+              newPoints[segIdx * 2] = newX;
+              newPoints[(segIdx + 1) * 2] = newX;
+            }
+            dispatch({
+              type: 'UPDATE_CONNECTOR',
+              id: connector.id,
+              changes: { points: newPoints.slice(2, -2) },
+            });
+          }}
+        />
+      );
+    }
+  }
+
+  return (
+    <>
+      {lineElement}
+      {handles}
+    </>
+  );
 }

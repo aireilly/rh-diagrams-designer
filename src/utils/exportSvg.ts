@@ -125,7 +125,17 @@ function renderConnector(connector: Connector, elements: DiagramElement[]): stri
 
   const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
   const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
-  const pathD = buildSvgOrthogonalPath(from, to);
+
+  let pathD: string;
+  if (connector.points && connector.points.length >= 4) {
+    const allPts = [from.x, from.y, ...connector.points, to.x, to.y];
+    pathD = `M ${allPts[0]} ${allPts[1]}`;
+    for (let i = 2; i < allPts.length; i += 2) {
+      pathD += ` L ${allPts[i]} ${allPts[i + 1]}`;
+    }
+  } else {
+    pathD = buildSvgOrthogonalPath(from, to);
+  }
 
   const markerId = `arrow-${connector.id}`;
   const dashAttr = connector.lineType === 'dashed' ? ' stroke-dasharray="4,4"' : '';
@@ -193,7 +203,7 @@ function renderElement(el: DiagramElement): string {
   }
 }
 
-export function generateSvg(state: DiagramState): string {
+export function generateSvg(state: DiagramState, filename?: string): string {
   const width = CANVAS.WIDTH;
   const height = state.canvasHeight;
 
@@ -213,6 +223,10 @@ export function generateSvg(state: DiagramState): string {
     if (visibleIds.has(conn.fromId) && visibleIds.has(conn.toId)) {
       svgParts.push(renderConnector(conn, visibleElements));
     }
+  }
+
+  if (filename) {
+    svgParts.push(`  <text x="${width - 4}" y="${height - 4}" text-anchor="end" font-family="${FONT_FAMILY}" font-size="5" fill="#e8e8e8">${escapeXml(filename)}</text>`);
   }
 
   svgParts.push(`</svg>`);

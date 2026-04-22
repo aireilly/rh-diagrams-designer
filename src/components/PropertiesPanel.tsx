@@ -144,7 +144,7 @@ export default function PropertiesPanel() {
               <button
                 key={s}
                 className={`prop-btn ${(connector.fromSide || 'auto') === s ? 'active' : ''}`}
-                onClick={() => updateConnector({ fromSide: s })}
+                onClick={() => updateConnector({ fromSide: s, points: [] })}
               >
                 {s}
               </button>
@@ -161,13 +161,24 @@ export default function PropertiesPanel() {
               <button
                 key={s}
                 className={`prop-btn ${(connector.toSide || 'auto') === s ? 'active' : ''}`}
-                onClick={() => updateConnector({ toSide: s })}
+                onClick={() => updateConnector({ toSide: s, points: [] })}
               >
                 {s}
               </button>
             ))}
           </div>
         </div>
+
+        {connector.points && connector.points.length >= 4 && (
+          <div className="prop-group">
+            <button
+              className="prop-btn"
+              onClick={() => updateConnector({ points: [] })}
+            >
+              Reset Routing
+            </button>
+          </div>
+        )}
       </aside>
     );
   }

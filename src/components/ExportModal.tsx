@@ -28,16 +28,18 @@ export default function ExportModal({ onClose, stageRef }: ExportModalProps) {
   const filename = generateFilename(issueNumber, productFamily, description, dateStr);
 
   const handleExportSvg = () => {
-    const svg = generateSvg(state);
-    downloadFile(svg, `${filename || 'diagram'}.svg`, 'image/svg+xml');
+    const outputName = `${filename || 'diagram'}.svg`;
+    const svg = generateSvg(state, outputName);
+    downloadFile(svg, outputName, 'image/svg+xml');
   };
 
   const handleExportPng = async () => {
     const stage = stageRef?.current as Konva.Stage | null;
     if (!stage) return;
 
-    const blob = await exportPng(stage, state.elements);
-    downloadBlob(blob, `${filename || 'diagram'}.png`);
+    const outputName = `${filename || 'diagram'}.png`;
+    const blob = await exportPng(stage, state.elements, outputName);
+    downloadBlob(blob, outputName);
   };
 
   const handleSaveProject = () => {
