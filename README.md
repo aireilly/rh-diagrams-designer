@@ -4,6 +4,11 @@
 
 Built with React, TypeScript, and Konva.js. Runs entirely client-side.
 
+> [!IMPORTANT]
+> **You do not need to install anything to use this tool.** Just visit the live site:
+>
+> **https://aireilly.github.io/rh-diagrams-designer/**
+
 <img width="500" alt="image" src="https://github.com/user-attachments/assets/7364eb49-ce26-4b03-a019-a2536991fe27" />
 
 
