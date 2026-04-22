@@ -52,6 +52,8 @@ export interface Connector {
   points: number[];
   fromSide: AnchorSide;
   toSide: AnchorSide;
+  fromOffset?: number;
+  toOffset?: number;
 }
 
 export interface DiagramState {
@@ -76,6 +78,7 @@ export type DiagramAction =
   | { type: 'MOVE_ELEMENTS'; moves: { id: string; x: number; y: number }[] }
   | { type: 'ADD_CONNECTOR'; connector: Connector }
   | { type: 'UPDATE_CONNECTOR'; id: string; changes: Partial<Connector> }
+  | { type: 'UPDATE_CONNECTORS'; updates: { id: string; changes: Partial<Connector> }[] }
   | { type: 'DELETE_CONNECTORS'; ids: string[] }
   | { type: 'SET_SELECTION'; ids: string[] }
   | { type: 'SET_CANVAS_HEIGHT'; height: number }

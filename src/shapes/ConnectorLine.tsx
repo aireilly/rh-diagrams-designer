@@ -15,7 +15,8 @@ interface ConnectorLineProps {
 function getAnchorPoint(
   el: DiagramElement,
   side: AnchorSide,
-  otherEl: DiagramElement
+  otherEl: DiagramElement,
+  offset = 0
 ): { x: number; y: number; dir: 'up' | 'down' | 'left' | 'right' } {
   const bounds = getElementBounds(el);
   const otherBounds = getElementBounds(otherEl);
@@ -45,13 +46,13 @@ function getAnchorPoint(
 
   switch (side) {
     case 'top':
-      return { x: cx, y: bounds.y, dir: 'up' };
+      return { x: cx + offset, y: bounds.y, dir: 'up' };
     case 'bottom':
-      return { x: cx, y: bounds.y + bounds.height, dir: 'down' };
+      return { x: cx + offset, y: bounds.y + bounds.height, dir: 'down' };
     case 'left':
-      return { x: bounds.x, y: cy, dir: 'left' };
+      return { x: bounds.x, y: cy + offset, dir: 'left' };
     case 'right':
-      return { x: bounds.x + bounds.width, y: cy, dir: 'right' };
+      return { x: bounds.x + bounds.width, y: cy + offset, dir: 'right' };
   }
 }
 
@@ -117,8 +118,8 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
 
   if (!fromEl || !toEl) return null;
 
-  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
-  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
+  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl, connector.fromOffset || 0);
+  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl, connector.toOffset || 0);
 
   const points = connector.points && connector.points.length >= 4
     ? [from.x, from.y, ...connector.points, to.x, to.y]
@@ -130,7 +131,15 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.cancelBubble = true;
-    setSelection([connector.id]);
+    if (e.evt.shiftKey) {
+      const alreadySelected = state.selectedIds.includes(connector.id);
+      const ids = alreadySelected
+        ? state.selectedIds.filter((id) => id !== connector.id)
+        : [...state.selectedIds, connector.id];
+      setSelection(ids);
+    } else {
+      setSelection([connector.id]);
+    }
   };
 
   const color = isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY);

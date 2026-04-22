@@ -63,7 +63,7 @@ function renderText(el: DiagramElement): string {
   return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`;
 }
 
-function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramElement): { x: number; y: number; dir: string } {
+function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramElement, offset = 0): { x: number; y: number; dir: string } {
   const cx = el.x + el.width / 2;
   let cy = el.y + el.height / 2;
 
@@ -84,10 +84,10 @@ function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramEl
   }
 
   switch (side) {
-    case 'top': return { x: cx, y: el.y, dir: 'up' };
-    case 'bottom': return { x: cx, y: el.y + el.height, dir: 'down' };
-    case 'left': return { x: el.x, y: cy, dir: 'left' };
-    case 'right': return { x: el.x + el.width, y: cy, dir: 'right' };
+    case 'top': return { x: cx + offset, y: el.y, dir: 'up' };
+    case 'bottom': return { x: cx + offset, y: el.y + el.height, dir: 'down' };
+    case 'left': return { x: el.x, y: cy + offset, dir: 'left' };
+    case 'right': return { x: el.x + el.width, y: cy + offset, dir: 'right' };
   }
 }
 
@@ -123,8 +123,8 @@ function renderConnector(connector: Connector, elements: DiagramElement[]): stri
   const toEl = elements.find((e) => e.id === connector.toId);
   if (!fromEl || !toEl) return '';
 
-  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl);
-  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl);
+  const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl, connector.fromOffset || 0);
+  const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl, connector.toOffset || 0);
 
   let pathD: string;
   if (connector.points && connector.points.length >= 4) {

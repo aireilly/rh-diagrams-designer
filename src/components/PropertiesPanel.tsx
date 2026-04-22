@@ -1,7 +1,22 @@
 import { useDiagram } from '../state/DiagramContext';
 import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS, FONT_FAMILY, FONT_FAMILY_MONO, NETWORK_COLORS } from '../constants';
-import { AnchorSide, ArrowDirection, ConnectorType, FontWeight, TextPosition } from '../types';
+import { AnchorSide, ArrowDirection, Connector, ConnectorType, DiagramElement, FontWeight, TextPosition } from '../types';
 import './PropertiesPanel.css';
+
+const OFFSET_SPACING = 15;
+
+function resolveAutoSide(
+  fromEl: DiagramElement,
+  toEl: DiagramElement,
+  side: AnchorSide
+): Exclude<AnchorSide, 'auto'> {
+  if (side !== 'auto') return side;
+  const dx = (toEl.x + toEl.width / 2) - (fromEl.x + fromEl.width / 2);
+  const dy = (toEl.y + toEl.height / 2) - (fromEl.y + fromEl.height / 2);
+  return Math.abs(dx) > Math.abs(dy)
+    ? (dx > 0 ? 'right' : 'left')
+    : (dy > 0 ? 'bottom' : 'top');
+}
 
 const CONNECTOR_COLORS = [
   { name: 'Gray 50', hex: COLORS.GRAY_50 },
@@ -20,6 +35,7 @@ export default function PropertiesPanel() {
   const selectedId = state.selectedIds[0];
   const element = state.elements.find((e) => e.id === selectedId);
   const connector = state.connectors.find((c) => c.id === selectedId);
+  const selectedConnectors = state.connectors.filter((c) => state.selectedIds.includes(c.id));
 
   if (!element && !connector) {
     return (
@@ -54,6 +70,69 @@ export default function PropertiesPanel() {
           {' — '}convert a screenshot into a Red Hat diagram.
           <br />
           Copy skills to .claude/skills/
+        </div>
+      </aside>
+    );
+  }
+
+  if (selectedConnectors.length > 1) {
+    const computeOffsets = (end: 'from' | 'to') => {
+      const idKey = end === 'from' ? 'fromId' : 'toId';
+      const sideKey = end === 'from' ? 'fromSide' : 'toSide';
+      const offsetKey = end === 'from' ? 'fromOffset' : 'toOffset';
+
+      const groups = new Map<string, Connector[]>();
+      for (const c of selectedConnectors) {
+        const el = state.elements.find((e) => e.id === c[idKey]);
+        const otherId = end === 'from' ? c.toId : c.fromId;
+        const otherEl = state.elements.find((e) => e.id === otherId);
+        if (!el || !otherEl) continue;
+        const side = resolveAutoSide(el, otherEl, c[sideKey] || 'auto');
+        const key = `${c[idKey]}:${side}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(c);
+      }
+
+      const updates: { id: string; changes: Partial<Connector> }[] = [];
+      for (const group of groups.values()) {
+        const n = group.length;
+        for (let i = 0; i < n; i++) {
+          const offset = n === 1 ? 0 : (i - (n - 1) / 2) * OFFSET_SPACING;
+          updates.push({ id: group[i].id, changes: { [offsetKey]: offset, points: [] } });
+        }
+      }
+      dispatch({ type: 'UPDATE_CONNECTORS', updates });
+    };
+
+    const handleResetOffsets = () => {
+      const updates = selectedConnectors.map((c) => ({
+        id: c.id,
+        changes: { fromOffset: 0, toOffset: 0, points: [] as number[] },
+      }));
+      dispatch({ type: 'UPDATE_CONNECTORS', updates });
+    };
+
+    return (
+      <aside className="properties-panel">
+        <h3 className="panel-title">Connectors ({selectedConnectors.length})</h3>
+        <p className="empty-message">Shift+click to multi-select connectors.</p>
+
+        <div className="prop-group">
+          <label className="prop-label">Overlap Fix</label>
+          <div className="prop-button-row">
+            <button className="prop-btn" onClick={() => computeOffsets('from')}>
+              Offset Origin
+            </button>
+            <button className="prop-btn" onClick={() => computeOffsets('to')}>
+              Offset Destination
+            </button>
+          </div>
+        </div>
+
+        <div className="prop-group">
+          <button className="prop-btn" onClick={handleResetOffsets}>
+            Reset All Offsets
+          </button>
         </div>
       </aside>
     );

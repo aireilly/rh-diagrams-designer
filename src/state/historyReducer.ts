@@ -181,6 +181,17 @@ function diagramReducer(state: DiagramState, action: DiagramAction): DiagramStat
         ),
       };
 
+    case 'UPDATE_CONNECTORS': {
+      const updateMap = new Map(action.updates.map((u) => [u.id, u.changes]));
+      return {
+        ...state,
+        connectors: state.connectors.map((c) => {
+          const changes = updateMap.get(c.id);
+          return changes ? { ...c, ...changes } : c;
+        }),
+      };
+    }
+
     case 'DELETE_CONNECTORS':
       return {
         ...state,
