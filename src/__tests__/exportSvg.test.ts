@@ -29,6 +29,7 @@ describe('generateSvg', () => {
     snapEnabled: true,
     tool: 'select',
     networkLineColor: '#5e40be',
+    lastCanvasClickPos: null,
   };
 
   it('generates valid SVG with correct dimensions', () => {

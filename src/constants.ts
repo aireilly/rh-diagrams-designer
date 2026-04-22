@@ -51,6 +51,7 @@ export const FONT_SIZES = [16, 14, 12, 11, 10] as const;
 export const FONT_WEIGHTS = ['bold', 'medium'] as const;
 
 export const FONT_FAMILY = 'Red Hat Text';
+export const FONT_FAMILY_MONO = 'Red Hat Mono';
 
 export const GRID = {
   MINOR: 5,

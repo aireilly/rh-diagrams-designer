@@ -29,6 +29,7 @@ describe('projectFile', () => {
     snapEnabled: true,
     tool: 'select',
     networkLineColor: '#5e40be',
+    lastCanvasClickPos: null,
   };
 
   it('round-trips state through serialize/deserialize', () => {

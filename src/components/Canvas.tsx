@@ -90,8 +90,14 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         return;
       }
 
-      const clickedOnEmpty = e.target === e.target.getStage();
+      const stage = e.target.getStage();
+      const clickedOnEmpty = e.target === stage;
       if (clickedOnEmpty) {
+        const pointer = stage?.getPointerPosition();
+        if (pointer) {
+          const canvasPos = pointerToCanvas(pointer);
+          dispatch({ type: 'SET_LAST_CLICK_POS', pos: { x: Math.round(canvasPos.x), y: Math.round(canvasPos.y) } });
+        }
         setSelection([]);
         setPendingFrom(null);
         return;
@@ -487,6 +493,7 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         </Layer>
         <Layer x={pad} y={pad}>
           {state.elements.filter((el) => el.type === 'network-line').map(renderElement)}
+          {state.elements.filter((el) => el.type !== 'circle' && el.type !== 'network-line').map(renderElement)}
           {state.connectors.map((c) => (
             <ConnectorLine
               key={c.id}
@@ -494,7 +501,6 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
               isSelected={state.selectedIds.includes(c.id)}
             />
           ))}
-          {state.elements.filter((el) => el.type !== 'circle' && el.type !== 'network-line').map(renderElement)}
           {state.elements.filter((el) => el.type === 'circle').map(renderElement)}
           <Transformer
             ref={transformerRef}

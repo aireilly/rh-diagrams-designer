@@ -4,6 +4,7 @@ import { AnchorSide, Connector, DiagramElement } from '../types';
 import { ARROWHEAD, COLORS } from '../constants';
 import { useDiagram } from '../state/DiagramContext';
 import { getElementBounds } from '../utils/elementBounds';
+import { ICONS } from './iconPaths';
 
 interface ConnectorLineProps {
   connector: Connector;
@@ -18,7 +19,15 @@ function getAnchorPoint(
   const bounds = getElementBounds(el);
   const otherBounds = getElementBounds(otherEl);
   const cx = bounds.x + bounds.width / 2;
-  const cy = bounds.y + bounds.height / 2;
+  let cy = bounds.y + bounds.height / 2;
+
+  if (el.type === 'icon' && el.iconId) {
+    const icon = ICONS.find((i) => i.id === el.iconId);
+    if (icon) {
+      const textTop = icon.height + 4;
+      cy = bounds.y + textTop + (bounds.height - textTop) / 2;
+    }
+  }
 
   if (side === 'auto') {
     const ocx = otherBounds.x + otherBounds.width / 2;
@@ -128,6 +137,7 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
     dashEnabled,
     hitStrokeWidth: 12,
     onClick: handleClick,
+    perfectDrawEnabled: false,
   };
 
   const color = isSelected ? '#4a90d9' : (connector.stroke || COLORS.DARK_GRAY);

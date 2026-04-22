@@ -125,6 +125,8 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
         stroke={element.stroke || undefined}
         strokeWidth={element.strokeWidth}
         cornerRadius={element.cornerRadius || 0}
+        dash={element.strokeDashEnabled ? [6, 4] : undefined}
+        dashEnabled={!!element.strokeDashEnabled}
       />
       <Text
         ref={textRef}
@@ -134,7 +136,7 @@ export default function RectShape({ element, isSelected }: RectShapeProps) {
         align={textAlign(element.textPosition)}
         verticalAlign={textVAlign(element.textPosition)}
         fontSize={element.fontSize}
-        fontFamily={FONT_FAMILY}
+        fontFamily={element.fontFamily || FONT_FAMILY}
         fontStyle={element.fontWeight === 'bold' ? 'bold' : '500'}
         fill={element.textColor}
         listening={false}

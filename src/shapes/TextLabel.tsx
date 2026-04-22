@@ -40,7 +40,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
     textarea.style.left = `${stageBox.left + textPosition.x * state.zoom}px`;
     textarea.style.width = `${element.width * state.zoom}px`;
     textarea.style.fontSize = `${element.fontSize * state.zoom}px`;
-    textarea.style.fontFamily = FONT_FAMILY;
+    textarea.style.fontFamily = element.fontFamily || FONT_FAMILY;
     textarea.style.border = '2px solid #4a90d9';
     textarea.style.padding = '4px';
     textarea.style.margin = '0';
@@ -82,7 +82,7 @@ export default function TextLabel({ element, isSelected }: TextLabelProps) {
         text={element.text}
         width={element.width}
         fontSize={element.fontSize}
-        fontFamily={FONT_FAMILY}
+        fontFamily={element.fontFamily || FONT_FAMILY}
         fontStyle={element.fontWeight === 'bold' ? 'bold' : '500'}
         fill={element.textColor}
       />

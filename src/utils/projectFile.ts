@@ -28,6 +28,7 @@ export function deserializeProject(json: string): DiagramState {
     snapEnabled: true,
     tool: 'select',
     networkLineColor: '#5e40be',
+    lastCanvasClickPos: null,
   };
 }
 

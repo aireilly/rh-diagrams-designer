@@ -1,5 +1,5 @@
 import { useDiagram } from '../state/DiagramContext';
-import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS, NETWORK_COLORS } from '../constants';
+import { COLOR_SWATCHES, COLORS, FONT_SIZES, FONT_WEIGHTS, FONT_FAMILY, FONT_FAMILY_MONO, NETWORK_COLORS } from '../constants';
 import { AnchorSide, ArrowDirection, ConnectorType, FontWeight, TextPosition } from '../types';
 import './PropertiesPanel.css';
 
@@ -320,6 +320,48 @@ export default function PropertiesPanel() {
         </div>
       )}
 
+      {/* Stroke Style */}
+      {element.type === 'rect' && element.stroke && (
+        <div className="prop-group">
+          <label className="prop-label">Stroke Style</label>
+          <div className="prop-button-row">
+            <button
+              className={`prop-btn ${!element.strokeDashEnabled ? 'active' : ''}`}
+              onClick={() => updateElement(element.id, { strokeDashEnabled: false })}
+            >
+              Solid
+            </button>
+            <button
+              className={`prop-btn ${element.strokeDashEnabled ? 'active' : ''}`}
+              onClick={() => updateElement(element.id, { strokeDashEnabled: true })}
+            >
+              Dashed
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Font Family */}
+      {(element.type === 'rect' || element.type === 'text') && (
+        <div className="prop-group">
+          <label className="prop-label">Font</label>
+          <div className="prop-button-row">
+            <button
+              className={`prop-btn ${(!element.fontFamily || element.fontFamily === FONT_FAMILY) ? 'active' : ''}`}
+              onClick={() => updateElement(element.id, { fontFamily: FONT_FAMILY })}
+            >
+              Text
+            </button>
+            <button
+              className={`prop-btn ${element.fontFamily === FONT_FAMILY_MONO ? 'active' : ''}`}
+              onClick={() => updateElement(element.id, { fontFamily: FONT_FAMILY_MONO })}
+            >
+              Mono
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Size */}
       {element.type === 'rect' && (
         <div className="prop-group">
@@ -350,6 +392,24 @@ export default function PropertiesPanel() {
           </div>
         </div>
       )}
+      {/* Layer Order */}
+      <div className="prop-group">
+        <label className="prop-label">Order</label>
+        <div className="prop-button-row">
+          <button
+            className="prop-btn"
+            onClick={() => dispatch({ type: 'SEND_TO_BACK', ids: [element.id] })}
+          >
+            To Back
+          </button>
+          <button
+            className="prop-btn"
+            onClick={() => dispatch({ type: 'SEND_TO_FRONT', ids: [element.id] })}
+          >
+            To Front
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }

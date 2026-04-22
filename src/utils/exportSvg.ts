@@ -25,7 +25,8 @@ function renderRect(el: DiagramElement): string {
     parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="${el.fill}" />`);
   }
   if (el.stroke) {
-    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="none" stroke="${el.stroke}" stroke-width="${el.strokeWidth}" />`);
+    const dashAttr = el.strokeDashEnabled ? ' stroke-dasharray="6,4"' : '';
+    parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="none" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${dashAttr} />`);
   }
   if (!el.fill && !el.stroke) {
     parts.push(`  <rect x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}"${rx} fill="none" />`);
@@ -42,7 +43,8 @@ function renderRect(el: DiagramElement): string {
     else if (pos === 'bottom-right') { tx = el.x + el.width - 8; ty = el.y + el.height - 8; anchor = 'end'; }
     else { tx = el.x + el.width / 2; ty = el.y + el.height / 2 + el.fontSize / 3; anchor = 'middle'; }
 
-    parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${FONT_FAMILY}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`);
+    const fontFam = el.fontFamily || FONT_FAMILY;
+    parts.push(`  <text x="${tx}" y="${ty}" text-anchor="${anchor}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`);
   }
 
   return parts.join('\n');
@@ -57,12 +59,21 @@ function renderCircle(el: DiagramElement): string {
 
 function renderText(el: DiagramElement): string {
   const fontStyle = el.fontWeight === 'bold' ? 'font-weight:bold' : 'font-weight:500';
-  return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${FONT_FAMILY}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`;
+  const fontFam = el.fontFamily || FONT_FAMILY;
+  return `  <text x="${el.x}" y="${el.y + el.fontSize}" font-family="${fontFam}" font-size="${el.fontSize}" fill="${el.textColor}" style="${fontStyle}">${escapeXml(el.text)}</text>`;
 }
 
 function getAnchorPoint(el: DiagramElement, side: AnchorSide, otherEl: DiagramElement): { x: number; y: number; dir: string } {
   const cx = el.x + el.width / 2;
-  const cy = el.y + el.height / 2;
+  let cy = el.y + el.height / 2;
+
+  if (el.type === 'icon' && el.iconId) {
+    const icon = ICONS.find((i) => i.id === el.iconId);
+    if (icon) {
+      const textTop = icon.height + 4;
+      cy = el.y + textTop + (el.height - textTop) / 2;
+    }
+  }
 
   if (side === 'auto') {
     const ocx = otherEl.x + otherEl.width / 2;

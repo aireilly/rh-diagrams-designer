@@ -15,13 +15,13 @@ function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-function createBoxElement(variant: keyof typeof BOX_VARIANTS): DiagramElement {
+function createBoxElement(variant: keyof typeof BOX_VARIANTS, x: number, y: number): DiagramElement {
   const v = BOX_VARIANTS[variant];
   return {
     id: generateId('rect'),
     type: 'rect',
-    x: 50,
-    y: 50,
+    x,
+    y,
     width: 180,
     height: 120,
     rotation: 0,
@@ -57,7 +57,7 @@ function createCircleElement(number: number, x: number, y: number): DiagramEleme
   };
 }
 
-function createIconElement(iconId: string): DiagramElement {
+function createIconElement(iconId: string, x: number, y: number): DiagramElement {
   const icon = ICONS.find((i) => i.id === iconId);
   const iconWidth = icon?.width ?? 40;
   const iconHeight = icon?.height ?? 32;
@@ -71,8 +71,8 @@ function createIconElement(iconId: string): DiagramElement {
   return {
     id: generateId('icon'),
     type: 'icon',
-    x: 50,
-    y: 50,
+    x,
+    y,
     width: totalWidth,
     height: totalHeight,
     rotation: 0,
@@ -155,35 +155,35 @@ function IconCategorySections({ onAddIcon }: { onAddIcon: (id: string) => void }
 export default function ComponentPanel() {
   const { addElement, state, dispatch } = useDiagram();
 
+  const dropX = state.lastCanvasClickPos?.x ?? 50;
+  const dropY = state.lastCanvasClickPos?.y ?? 50;
+
   const handleAddBox = (variant: keyof typeof BOX_VARIANTS) => {
-    addElement(createBoxElement(variant));
+    addElement(createBoxElement(variant, dropX, dropY));
   };
 
   const handleAddCircle = () => {
-    // Next number = highest existing callout number + 1
     const existingNumbers = state.elements
       .filter((el) => el.type === 'circle')
       .map((el) => parseInt(el.text, 10))
       .filter((n) => !isNaN(n));
     const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
 
-    // If a shape is selected, position callout one grid step above and left of the shape's top-left corner
     const selectedEl = state.elements.find((el) => el.id === state.selectedIds[0]);
-    const x = selectedEl ? selectedEl.x - GRID.MINOR : 50;
-    const y = selectedEl ? selectedEl.y - GRID.MINOR : 50;
+    const x = selectedEl ? selectedEl.x - GRID.MINOR : dropX;
+    const y = selectedEl ? selectedEl.y - GRID.MINOR : dropY;
 
     addElement(createCircleElement(nextNumber, x, y));
   };
 
   const handleAddIcon = (iconId: string) => {
-    addElement(createIconElement(iconId));
+    addElement(createIconElement(iconId, dropX, dropY));
   };
 
   const handleAddText = () => {
-    // If a shape is selected, position label at its top-left inside corner
     const selectedEl = state.elements.find((el) => el.id === state.selectedIds[0]);
-    const x = selectedEl ? selectedEl.x + 8 : 50;
-    const y = selectedEl ? selectedEl.y + 8 : 50;
+    const x = selectedEl ? selectedEl.x + 8 : dropX;
+    const y = selectedEl ? selectedEl.y + 8 : dropY;
     addElement(createTextElement(x, y));
   };
 

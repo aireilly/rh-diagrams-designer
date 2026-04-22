@@ -37,6 +37,8 @@ export interface DiagramElement {
   groupId?: string | null;
   stacked?: boolean;
   cornerRadius?: number;
+  strokeDashEnabled?: boolean;
+  fontFamily?: string;
 }
 
 export interface Connector {
@@ -61,6 +63,7 @@ export interface DiagramState {
   snapEnabled: boolean;
   tool: ToolType;
   networkLineColor: string;
+  lastCanvasClickPos: Position | null;
 }
 
 export type ToolType = 'select' | 'connector-solid' | 'connector-dashed' | 'text' | 'network-line';
@@ -80,6 +83,9 @@ export type DiagramAction =
   | { type: 'SET_SNAP'; enabled: boolean }
   | { type: 'SET_TOOL'; tool: ToolType }
   | { type: 'SET_NETWORK_LINE_COLOR'; color: string }
+  | { type: 'SET_LAST_CLICK_POS'; pos: Position | null }
+  | { type: 'SEND_TO_FRONT'; ids: string[] }
+  | { type: 'SEND_TO_BACK'; ids: string[] }
   | { type: 'GROUP_ELEMENTS'; ids: string[]; groupId: string }
   | { type: 'UNGROUP_ELEMENTS'; groupId: string }
   | { type: 'LOAD_STATE'; state: DiagramState }

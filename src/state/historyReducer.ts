@@ -93,13 +93,14 @@ function createInitialDiagramState(): DiagramState {
     snapEnabled: true,
     tool: 'select',
     networkLineColor: COLORS.PURPLE_50,
+    lastCanvasClickPos: null,
   };
 }
 
 export function saveStateToStorage(state: DiagramState): void {
   try {
-    const { selectedIds: _sel, tool: _tool, networkLineColor: _nlc, ...persistable } = state;
-    void _sel; void _tool; void _nlc;
+    const { selectedIds: _sel, tool: _tool, networkLineColor: _nlc, lastCanvasClickPos: _lcp, ...persistable } = state;
+    void _sel; void _tool; void _nlc; void _lcp;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
   } catch {
     // Storage full or unavailable — silently ignore
@@ -220,6 +221,23 @@ function diagramReducer(state: DiagramState, action: DiagramAction): DiagramStat
     case 'SET_NETWORK_LINE_COLOR':
       return { ...state, networkLineColor: action.color };
 
+    case 'SET_LAST_CLICK_POS':
+      return { ...state, lastCanvasClickPos: action.pos };
+
+    case 'SEND_TO_FRONT': {
+      const ids = new Set(action.ids);
+      const rest = state.elements.filter((el) => !ids.has(el.id));
+      const moved = state.elements.filter((el) => ids.has(el.id));
+      return { ...state, elements: [...rest, ...moved] };
+    }
+
+    case 'SEND_TO_BACK': {
+      const ids = new Set(action.ids);
+      const rest = state.elements.filter((el) => !ids.has(el.id));
+      const moved = state.elements.filter((el) => ids.has(el.id));
+      return { ...state, elements: [...moved, ...rest] };
+    }
+
     case 'LOAD_STATE':
       return action.state;
 
@@ -234,6 +252,7 @@ const NON_HISTORY_ACTIONS: DiagramAction['type'][] = [
   'SET_SNAP',
   'SET_TOOL',
   'SET_NETWORK_LINE_COLOR',
+  'SET_LAST_CLICK_POS',
 ];
 
 export function historyReducer(state: HistoryState, action: DiagramAction): HistoryState {
