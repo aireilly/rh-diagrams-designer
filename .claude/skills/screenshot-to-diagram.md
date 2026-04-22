@@ -174,7 +174,9 @@ You can refine the layout in the visual editor.
   textPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center",
   iconId?: string,      // required for type "icon" — see Icon ID Reference
   groupId?: string | null,
-  variant?: "filled" | "outlined" | "gray" | "white"  // for type "rect"
+  variant?: "filled" | "outlined" | "gray" | "white",  // for type "rect"
+  strokeDashEnabled?: boolean,  // dashed stroke border (only when stroke is set)
+  fontFamily?: string           // "Red Hat Text" (default) or "Red Hat Mono" for code
 }
 ```
 
@@ -191,9 +193,13 @@ You can refine the layout in the visual editor.
   stroke: "#151515",      // always dark gray
   points: [],             // always empty — app calculates path
   fromSide: "auto" | "top" | "bottom" | "left" | "right",
-  toSide: "auto" | "top" | "bottom" | "left" | "right"
+  toSide: "auto" | "top" | "bottom" | "left" | "right",
+  fromOffset?: number,    // px shift along element edge to avoid overlap (default 0)
+  toOffset?: number       // px shift along element edge to avoid overlap (default 0)
 }
 ```
+
+When multiple connectors share the same anchor point on an element, use `fromOffset` / `toOffset` to spread them apart (e.g., -15, 0, 15 for three connectors). This prevents arrowheads from overlapping. For top/bottom sides the offset shifts horizontally; for left/right sides it shifts vertically.
 
 ### Element Defaults by Type
 
