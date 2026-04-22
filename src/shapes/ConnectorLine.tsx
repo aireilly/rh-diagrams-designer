@@ -186,7 +186,10 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
   const handles: React.ReactNode[] = [];
   if (isSelected) {
     const numPairs = points.length / 2;
-    for (let seg = 1; seg < numPairs - 2; seg++) {
+    const fromBase = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl, 0);
+    const toBase = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl, 0);
+
+    for (let seg = 0; seg < numPairs - 1; seg++) {
       const x1 = points[seg * 2];
       const y1 = points[seg * 2 + 1];
       const x2 = points[(seg + 1) * 2];
@@ -194,6 +197,8 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
       const midX = (x1 + x2) / 2;
       const midY = (y1 + y2) / 2;
       const isHorizontal = Math.abs(y1 - y2) < 1;
+      const isFirst = seg === 0;
+      const isLast = seg === numPairs - 2;
       const segIdx = seg;
 
       handles.push(
@@ -202,7 +207,7 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
           x={midX}
           y={midY}
           radius={HANDLE_RADIUS}
-          fill="#4a90d9"
+          fill={isFirst || isLast ? '#e8a835' : '#4a90d9'}
           stroke="#ffffff"
           strokeWidth={1}
           draggable
@@ -227,19 +232,27 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
           onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
             const newPoints = [...points];
             const increment = state.snapEnabled ? GRID.MINOR : 1;
+            const changes: Record<string, unknown> = {};
+
             if (isHorizontal) {
               const newY = snapToGrid(e.target.y(), increment);
               newPoints[segIdx * 2 + 1] = newY;
               newPoints[(segIdx + 1) * 2 + 1] = newY;
+              if (isFirst) changes.fromOffset = newY - fromBase.y;
+              if (isLast) changes.toOffset = newY - toBase.y;
             } else {
               const newX = snapToGrid(e.target.x(), increment);
               newPoints[segIdx * 2] = newX;
               newPoints[(segIdx + 1) * 2] = newX;
+              if (isFirst) changes.fromOffset = newX - fromBase.x;
+              if (isLast) changes.toOffset = newX - toBase.x;
             }
+
+            changes.points = newPoints.slice(2, -2);
             dispatch({
               type: 'UPDATE_CONNECTOR',
               id: connector.id,
-              changes: { points: newPoints.slice(2, -2) },
+              changes,
             });
           }}
         />

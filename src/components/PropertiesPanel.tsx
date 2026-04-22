@@ -76,32 +76,42 @@ export default function PropertiesPanel() {
   }
 
   if (selectedConnectors.length > 1) {
-    const computeOffsets = (end: 'from' | 'to') => {
-      const idKey = end === 'from' ? 'fromId' : 'toId';
-      const sideKey = end === 'from' ? 'fromSide' : 'toSide';
-      const offsetKey = end === 'from' ? 'fromOffset' : 'toOffset';
+    const handleOffset = () => {
+      type AnchorInfo = { connectorId: string; end: 'from' | 'to' };
+      const groups = new Map<string, AnchorInfo[]>();
 
-      const groups = new Map<string, Connector[]>();
       for (const c of selectedConnectors) {
-        const el = state.elements.find((e) => e.id === c[idKey]);
-        const otherId = end === 'from' ? c.toId : c.fromId;
-        const otherEl = state.elements.find((e) => e.id === otherId);
-        if (!el || !otherEl) continue;
-        const side = resolveAutoSide(el, otherEl, c[sideKey] || 'auto');
-        const key = `${c[idKey]}:${side}`;
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(c);
+        const fromEl = state.elements.find((e) => e.id === c.fromId);
+        const toEl = state.elements.find((e) => e.id === c.toId);
+        if (!fromEl || !toEl) continue;
+
+        const fromSide = resolveAutoSide(fromEl, toEl, c.fromSide || 'auto');
+        const fromKey = `${c.fromId}:${fromSide}`;
+        if (!groups.has(fromKey)) groups.set(fromKey, []);
+        groups.get(fromKey)!.push({ connectorId: c.id, end: 'from' });
+
+        const toSide = resolveAutoSide(toEl, fromEl, c.toSide || 'auto');
+        const toKey = `${c.toId}:${toSide}`;
+        if (!groups.has(toKey)) groups.set(toKey, []);
+        groups.get(toKey)!.push({ connectorId: c.id, end: 'to' });
       }
 
-      const updates: { id: string; changes: Partial<Connector> }[] = [];
+      const changesMap = new Map<string, Partial<Connector>>();
       for (const group of groups.values()) {
-        const n = group.length;
-        for (let i = 0; i < n; i++) {
-          const offset = n === 1 ? 0 : (i - (n - 1) / 2) * OFFSET_SPACING;
-          updates.push({ id: group[i].id, changes: { [offsetKey]: offset, points: [] } });
+        if (group.length <= 1) continue;
+        for (let i = 0; i < group.length; i++) {
+          const { connectorId, end } = group[i];
+          const offset = (i - (group.length - 1) / 2) * OFFSET_SPACING;
+          const offsetKey = end === 'from' ? 'fromOffset' : 'toOffset';
+          if (!changesMap.has(connectorId)) changesMap.set(connectorId, { points: [] as number[] });
+          changesMap.get(connectorId)![offsetKey] = offset;
         }
       }
-      dispatch({ type: 'UPDATE_CONNECTORS', updates });
+
+      const updates = Array.from(changesMap.entries()).map(([id, changes]) => ({ id, changes }));
+      if (updates.length > 0) {
+        dispatch({ type: 'UPDATE_CONNECTORS', updates });
+      }
     };
 
     const handleResetOffsets = () => {
@@ -118,21 +128,14 @@ export default function PropertiesPanel() {
         <p className="empty-message">Shift+click to multi-select connectors.</p>
 
         <div className="prop-group">
-          <label className="prop-label">Overlap Fix</label>
           <div className="prop-button-row">
-            <button className="prop-btn" onClick={() => computeOffsets('from')}>
-              Offset Origin
+            <button className="prop-btn" onClick={handleOffset}>
+              Offset Overlaps
             </button>
-            <button className="prop-btn" onClick={() => computeOffsets('to')}>
-              Offset Destination
+            <button className="prop-btn" onClick={handleResetOffsets}>
+              Reset
             </button>
           </div>
-        </div>
-
-        <div className="prop-group">
-          <button className="prop-btn" onClick={handleResetOffsets}>
-            Reset All Offsets
-          </button>
         </div>
       </aside>
     );
