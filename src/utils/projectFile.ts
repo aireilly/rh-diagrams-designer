@@ -1,7 +1,10 @@
 import { DiagramState } from '../types';
 
+const REPO_URL = 'https://github.com/aireilly/rh-diagrams-designer';
+
 interface ProjectFile {
   version: 1;
+  source: string;
   elements: DiagramState['elements'];
   connectors: DiagramState['connectors'];
   canvasHeight: number;
@@ -10,6 +13,7 @@ interface ProjectFile {
 export function serializeProject(state: DiagramState): string {
   const project: ProjectFile = {
     version: 1,
+    source: REPO_URL,
     elements: state.elements,
     connectors: state.connectors,
     canvasHeight: state.canvasHeight,

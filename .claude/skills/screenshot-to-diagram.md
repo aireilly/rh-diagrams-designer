@@ -147,6 +147,7 @@ You can refine the layout in the visual editor.
 ```json
 {
   "version": 1,
+  "source": "https://github.com/aireilly/rh-diagrams-designer",
   "elements": [ ...DiagramElement objects... ],
   "connectors": [ ...Connector objects... ],
   "canvasHeight": 600

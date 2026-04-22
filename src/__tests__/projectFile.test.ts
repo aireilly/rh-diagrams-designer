@@ -48,8 +48,9 @@ describe('projectFile', () => {
     expect(parsed.tool).toBe('select');
   });
 
-  it('serializes to valid JSON', () => {
+  it('serializes to valid JSON with source field', () => {
     const json = serializeProject(sampleState);
-    expect(() => JSON.parse(json)).not.toThrow();
+    const parsed = JSON.parse(json);
+    expect(parsed.source).toBe('https://github.com/aireilly/rh-diagrams-designer');
   });
 });
