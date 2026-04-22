@@ -175,14 +175,6 @@ function createInitialDiagramState(): DiagramState {
         textColor: COLORS.WHITE, groupId: null,
       },
       {
-        id: 'default-label-text',
-        type: 'text',
-        x: 50, y: 50, width: 160, height: 24, rotation: 0,
-        fill: '', stroke: '', strokeWidth: 0,
-        text: 'Label', fontSize: 14, fontWeight: 'bold',
-        textColor: COLORS.DARK_GRAY, groupId: null,
-      },
-      {
         id: 'default-memory-text',
         type: 'text',
         x: 190, y: 475, width: 250, height: 20, rotation: 0,
