@@ -27,7 +27,7 @@ describe('App', () => {
 
   it('renders Claude Code skill info box in properties panel', () => {
     render(<App />);
-    expect(screen.getByText('Claude Code Skill')).toBeInTheDocument();
-    expect(screen.getByText(/Download the Claude Code skill/i)).toBeInTheDocument();
+    expect(screen.getByText('Claude Code Skills')).toBeInTheDocument();
+    expect(screen.getByText('Diagram Builder')).toBeInTheDocument();
   });
 });
