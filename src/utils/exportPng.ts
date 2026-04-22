@@ -59,6 +59,11 @@ export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = [], f
       contentLayer?.add(watermark);
     }
 
+    const prevScaleX = stage.scaleX();
+    const prevScaleY = stage.scaleY();
+    stage.scaleX(1);
+    stage.scaleY(1);
+
     contentLayer?.batchDraw();
 
     stage.toBlob({
@@ -69,6 +74,8 @@ export function exportPng(stage: Konva.Stage, elements: DiagramElement[] = [], f
       pixelRatio: scale,
       mimeType: 'image/png',
       callback: (blob) => {
+        stage.scaleX(prevScaleX);
+        stage.scaleY(prevScaleY);
         bg.destroy();
         watermark?.destroy();
         gridLayer?.show();
