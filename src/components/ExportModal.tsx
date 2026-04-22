@@ -38,7 +38,7 @@ export default function ExportModal({ onClose, stageRef }: ExportModalProps) {
     if (!stage) return;
 
     const outputName = `${filename || 'diagram'}.png`;
-    const blob = await exportPng(stage, state.elements, outputName);
+    const blob = await exportPng(stage, state.elements, outputName, state.canvasHeight);
     downloadBlob(blob, outputName);
   };
 

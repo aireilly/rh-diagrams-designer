@@ -121,9 +121,23 @@ export default function ConnectorLine({ connector, isSelected }: ConnectorLinePr
   const from = getAnchorPoint(fromEl, connector.fromSide || 'auto', toEl, connector.fromOffset || 0);
   const to = getAnchorPoint(toEl, connector.toSide || 'auto', fromEl, connector.toOffset || 0);
 
-  const points = connector.points && connector.points.length >= 4
-    ? [from.x, from.y, ...connector.points, to.x, to.y]
-    : buildOrthogonalPath(from, to);
+  let points: number[];
+  if (connector.points && connector.points.length >= 4) {
+    const wp = [...connector.points];
+    if (from.dir === 'left' || from.dir === 'right') {
+      wp[1] = from.y;
+    } else {
+      wp[0] = from.x;
+    }
+    if (to.dir === 'left' || to.dir === 'right') {
+      wp[wp.length - 1] = to.y;
+    } else {
+      wp[wp.length - 2] = to.x;
+    }
+    points = [from.x, from.y, ...wp, to.x, to.y];
+  } else {
+    points = buildOrthogonalPath(from, to);
+  }
 
   const dashEnabled = connector.lineType === 'dashed';
   const dash = dashEnabled ? [4, 4] : undefined;

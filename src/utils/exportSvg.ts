@@ -175,7 +175,18 @@ function renderConnector(connector: Connector, elements: DiagramElement[]): stri
 
   let pathD: string;
   if (connector.points && connector.points.length >= 4) {
-    const allPts = [from.x, from.y, ...connector.points, to.x, to.y];
+    const wp = [...connector.points];
+    if (from.dir === 'left' || from.dir === 'right') {
+      wp[1] = from.y;
+    } else {
+      wp[0] = from.x;
+    }
+    if (to.dir === 'left' || to.dir === 'right') {
+      wp[wp.length - 1] = to.y;
+    } else {
+      wp[wp.length - 2] = to.x;
+    }
+    const allPts = [from.x, from.y, ...wp, to.x, to.y];
     pathD = `M ${allPts[0]} ${allPts[1]}`;
     for (let i = 2; i < allPts.length; i += 2) {
       pathD += ` L ${allPts[i]} ${allPts[i + 1]}`;
