@@ -27,7 +27,7 @@ describe('historyReducer', () => {
   const defaultElementCount = initial.present.elements.length;
 
   it('starts with default diagram elements and connectors', () => {
-    expect(initial.present.elements).toHaveLength(21);
+    expect(initial.present.elements).toHaveLength(23);
     expect(initial.present.connectors).toHaveLength(10);
     expect(initial.past).toEqual([]);
     expect(initial.future).toEqual([]);

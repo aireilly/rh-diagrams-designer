@@ -35,7 +35,7 @@ function createInitialDiagramState(): DiagramState {
         type: 'rect',
         x: 620, y: 220, width: 120, height: 110, rotation: 0,
         fill: COLORS.BLUE_10, stroke: COLORS.BLUE_10, strokeWidth: 2,
-        text: 'Inference Scheduler', fontSize: 12, fontWeight: 'bold',
+        text: 'Inference scheduler', fontSize: 12, fontWeight: 'bold',
         textColor: COLORS.DARK_GRAY, textPosition: 'top-left', variant: 'filled', groupId: null,
       },
       {
@@ -97,10 +97,10 @@ function createInitialDiagramState(): DiagramState {
       {
         id: 'default-caching',
         type: 'rect',
-        x: 45, y: 460, width: 500, height: 40, rotation: 0,
+        x: 40, y: 460, width: 510, height: 40, rotation: 0,
         fill: COLORS.BLUE_10, stroke: COLORS.BLUE_10, strokeWidth: 2,
-        text: 'LMCache, Dynamo KVBM, Host Memory, etc', fontSize: 12, fontWeight: 'medium',
-        textColor: COLORS.DARK_GRAY, textPosition: 'center', variant: 'white', groupId: null,
+        text: 'LLM memory stack', fontSize: 12, fontWeight: 'bold',
+        textColor: COLORS.DARK_GRAY, textPosition: 'top-left', variant: 'white', groupId: null,
       },
       {
         id: 'default-nodes',
@@ -173,6 +173,22 @@ function createInitialDiagramState(): DiagramState {
         fill: COLORS.DARK_GRAY, stroke: '', strokeWidth: 0,
         text: '2', fontSize: 16, fontWeight: 'bold',
         textColor: COLORS.WHITE, groupId: null,
+      },
+      {
+        id: 'default-label-text',
+        type: 'text',
+        x: 50, y: 50, width: 160, height: 24, rotation: 0,
+        fill: '', stroke: '', strokeWidth: 0,
+        text: 'Label', fontSize: 14, fontWeight: 'bold',
+        textColor: COLORS.DARK_GRAY, groupId: null,
+      },
+      {
+        id: 'default-memory-text',
+        type: 'text',
+        x: 190, y: 475, width: 250, height: 20, rotation: 0,
+        fill: '', stroke: '', strokeWidth: 0,
+        text: 'LMCache, Dynamo KVBM, or host memory', fontSize: 12, fontWeight: 'medium',
+        textColor: COLORS.DARK_GRAY, groupId: null,
       },
     ],
     connectors: [
