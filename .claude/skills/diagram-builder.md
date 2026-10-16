@@ -66,6 +66,12 @@ Other Icons:
 - Health Monitor
 - VPN
 
+Logos (see Logo ID Reference; logos take no label, so skip Q3 for them):
+- Red Hat AI, Red Hat AI Enterprise, Red Hat AI Inference
+- Red Hat Enterprise Linux, Red Hat Enterprise Linux 10, Red Hat Enterprise Linux AI
+- Red Hat OpenShift, Red Hat Advanced Cluster Management
+- NVIDIA (horizontal), NVIDIA (vertical)
+
 **Q2: Quantity.** For each chosen element type, ask: "How many [type] elements?" Choices: 1, 2, 3, 4, 5.
 
 **Q3: Labels.** For each element instance, ask: "Label for [type] #N?" This is an open-ended question (not multiple choice).
@@ -117,7 +123,7 @@ After all questions are answered, generate a valid project JSON file.
 ```typescript
 {
   id: string,           // unique, e.g. "rect-1", "icon-2", "circle-3"
-  type: "rect" | "circle" | "icon" | "text",
+  type: "rect" | "circle" | "icon" | "text" | "logo",
   x: number,            // horizontal position in pixels
   y: number,            // vertical position in pixels
   width: number,        // element width in pixels
@@ -131,6 +137,7 @@ After all questions are answered, generate a valid project JSON file.
   fontWeight: "bold" | "medium",
   textColor: string,    // hex color
   iconId?: string,      // required for type "icon" — see Icon ID Reference
+  logoId?: string,      // required for type "logo" — see Logo ID Reference
   groupId?: string | null,
   variant?: "filled" | "outlined" | "gray" | "white",  // for type "rect"
   strokeDashEnabled?: boolean,  // dashed stroke border (only when stroke is set)
@@ -179,6 +186,9 @@ When multiple connectors share the same anchor point on an element, use `fromOff
 **All Icons:**
 `{ type: "icon", fill: "#4d4d4d", stroke: "", strokeWidth: 0, fontSize: 11, fontWeight: "medium", textColor: "#151515" }`
 
+**All Logos:**
+`{ type: "logo", fill: "", stroke: "", strokeWidth: 0, text: "<logo name>", fontSize: 11, fontWeight: "medium", textColor: "#151515" }`
+
 ### Icon ID Reference
 
 | User-facing name | iconId | width | height |
@@ -205,6 +215,23 @@ When multiple connectors share the same anchor point on an element, use `fromOff
 | VPN | other-vpn | 33 | 38 |
 
 For icon elements, calculate the total height by adding label space: `totalHeight = iconHeight + (labelLines * 13) + 8`, where labelLines depends on the label length. A simple heuristic: `labelLines = ceil(labelLength * 5.5 / totalWidth) + 1`. Use `totalWidth = max(iconWidth, longestWordLength * 6.5 + 12, 60)`.
+
+### Logo ID Reference
+
+Product logos are images, not labeled icons. They have no text label and always keep their aspect ratio, so if you change `width`, set `height = round(width * defaultHeight / defaultWidth)`.
+
+| Logo | logoId | default width | default height |
+|---|---|---|---|
+| Red Hat AI | red-hat-ai | 160 | 33 |
+| Red Hat AI Enterprise | red-hat-ai-enterprise | 160 | 53 |
+| Red Hat AI Inference | red-hat-ai-inference | 160 | 53 |
+| Red Hat Enterprise Linux | red-hat-enterprise-linux | 160 | 39 |
+| Red Hat Enterprise Linux 10 | red-hat-enterprise-linux-10 | 160 | 35 |
+| Red Hat Enterprise Linux AI | red-hat-enterprise-linux-ai | 160 | 35 |
+| Red Hat OpenShift | red-hat-openshift | 160 | 54 |
+| Red Hat Advanced Cluster Management | red-hat-acm | 200 | 39 |
+| NVIDIA (horizontal) | nvidia-horizontal | 120 | 23 |
+| NVIDIA (vertical) | nvidia-vertical | 80 | 62 |
 
 ### Brand Colors Reference
 

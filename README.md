@@ -15,7 +15,7 @@ Built with React, TypeScript, and Konva.js. Runs entirely client-side.
 ## Features
 
 - **Constrained palette** — enforced Red Hat colors, fonts, and shapes so every diagram is on-brand
-- **Shape library** — filled/outlined/gray/white boxes, numbered callouts, 6 Red Hat icons (Server, Person, Software, Terminal, Scale, Cost), text labels, and connectors (solid/dashed, with arrow options)
+- **Shape library** — filled/outlined/gray/white boxes, numbered callouts, 6 Red Hat icons (Server, Person, Software, Terminal, Scale, Cost), text labels, Red Hat and partner product logos (SVG), and connectors (solid/dashed, with arrow options)
 - **Snap-to-grid canvas** — 5 px minor grid, 10 px major grid, toggleable snap
 - **Zoom & pan** — 25 %–400 % zoom, middle-click or Space+drag to pan
 - **Inline text editing** — double-click any shape to edit text directly on the canvas
@@ -54,7 +54,7 @@ Open [http://localhost:5173](http://localhost:5173).
 ```
 src/
 ├── components/      # UI panels: Canvas, Toolbar, ComponentPanel, PropertiesPanel, StatusBar, ExportModal
-├── shapes/          # Canvas shape components: RectShape, CircleCallout, TextLabel, IconShape, ConnectorLine
+├── shapes/          # Canvas shape components: RectShape, CircleCallout, TextLabel, IconShape, LogoShape, ConnectorLine
 ├── state/           # DiagramContext (React context) + historyReducer (undo/redo)
 ├── utils/           # Export (SVG, PNG), project save/load, grid snapping
 ├── constants.ts     # Colors, fonts, grid settings, canvas dimensions

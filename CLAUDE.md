@@ -26,7 +26,7 @@ npx vitest                           # watch mode
 
 **Data flow:** User action → `dispatch(action)` → `historyReducer` → `diagramReducer` → state update → re-render. All actions are the `DiagramAction` union in `types.ts`.
 
-**Canvas rendering:** Konva `<Stage>` with `<Layer>`. Each shape type (`rect`, `circle`, `icon`, `text`, `network-line`) has its own component in `src/shapes/`. Shared behaviors (`useGroupDrag`, `useShapeClick`) live in `DiagramContext.tsx`. The Stage is 300px larger than the canvas on each side (`CANVAS.STAGE_PADDING`) so shapes can be parked off-canvas while laying out diagrams. Both Layers are offset by the padding; all pointer-to-canvas conversions use the `pointerToCanvas` helper in `Canvas.tsx`.
+**Canvas rendering:** Konva `<Stage>` with `<Layer>`. Each shape type (`rect`, `circle`, `icon`, `text`, `network-line`, `logo`) has its own component in `src/shapes/`. Shared behaviors (`useGroupDrag`, `useShapeClick`) live in `DiagramContext.tsx`. The Stage is 300px larger than the canvas on each side (`CANVAS.STAGE_PADDING`) so shapes can be parked off-canvas while laying out diagrams. Both Layers are offset by the padding; all pointer-to-canvas conversions use the `pointerToCanvas` helper in `Canvas.tsx`.
 
 **Export pipeline:** `exportSvg.ts` and `exportPng.ts` read the Konva stage to produce downloads (SVG: 760px, PNG: 1520px @ 192 DPI). Only elements overlapping the canvas area are included — off-canvas shapes are filtered via `isOnCanvas()` from `elementBounds.ts`.
 
@@ -72,6 +72,9 @@ Add SVG path data to `src/shapes/iconPaths.ts` — it auto-appears in ComponentP
 1. Add to the `DiagramAction` union in `src/types.ts`
 2. Handle in `diagramReducer` inside `src/state/historyReducer.ts`
 3. If the action should NOT be undoable, add its type to `NON_HISTORY_ACTIONS`
+
+### Adding a new logo
+Put a cleaned SVG (no Adobe metadata, viewBox cropped to the artwork) in `public/logos/` and add an entry to `LOGOS` in `src/shapes/logoDefs.ts` with the viewBox width and height. It auto-appears in the Logos section of ComponentPanel. Also add it to the Logo ID Reference table in both `.claude/skills/` files.
 
 ### Adding a new color
 Add to both `COLORS` and `COLOR_SWATCHES` in `src/constants.ts`. Must be an approved Red Hat brand color.

@@ -57,4 +57,21 @@ describe('generateSvg', () => {
     const svg = generateSvg(state);
     expect(svg).toContain('Red Hat Text');
   });
+
+  it('renders logo elements as images', () => {
+    const svg = generateSvg({
+      ...state,
+      elements: [{
+        ...state.elements[0],
+        id: 'logo-1',
+        type: 'logo',
+        logoId: 'red-hat-openshift',
+        width: 160,
+        height: 54,
+        text: 'Red Hat OpenShift',
+      }],
+    });
+    expect(svg).toContain('<image x="50" y="50" width="160" height="54"');
+    expect(svg).toContain('logos/red-hat-openshift.svg');
+  });
 });

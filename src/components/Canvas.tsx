@@ -10,8 +10,12 @@ import CircleCallout from '../shapes/CircleCallout';
 import TextLabel from '../shapes/TextLabel';
 import IconShape from '../shapes/IconShape';
 import NetworkLineShape from '../shapes/NetworkLineShape';
+import LogoShape from '../shapes/LogoShape';
 import ConnectorLine from '../shapes/ConnectorLine';
 import './Canvas.css';
+
+const CORNER_ANCHORS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+const ALL_ANCHORS = [...CORNER_ANCHORS, 'top-center', 'middle-left', 'middle-right', 'bottom-center'] as const;
 
 function GridLines({ width, height }: { width: number; height: number }) {
   const lines = [];
@@ -429,6 +433,12 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
     transformer.getLayer()?.batchDraw();
   }, [state.selectedIds, state.elements, stageRef]);
 
+  // Logos scale proportionally, so only offer corner anchors when one is selected
+  const transformerAnchors = useMemo(() => {
+    const hasLogo = state.elements.some((el) => el.type === 'logo' && state.selectedIds.includes(el.id));
+    return hasLogo ? [...CORNER_ANCHORS] : [...ALL_ANCHORS];
+  }, [state.elements, state.selectedIds]);
+
   // Bounding box around multi-selected elements
   const groupBounds = useMemo(() => {
     const selectedElements = state.elements.filter((el) => state.selectedIds.includes(el.id));
@@ -466,6 +476,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
         return <IconShape {...props} />;
       case 'network-line':
         return <NetworkLineShape {...props} />;
+      case 'logo':
+        return <LogoShape {...props} />;
       default:
         return null;
     }
@@ -509,6 +521,8 @@ export default function Canvas({ stageRef: externalStageRef }: CanvasProps) {
             anchorSize={8}
             anchorCornerRadius={2}
             rotateEnabled={false}
+            enabledAnchors={transformerAnchors}
+            keepRatio
           />
           {groupBounds && (
             <Rect

@@ -1,4 +1,4 @@
-export type ShapeType = 'rect' | 'circle' | 'icon' | 'text' | 'network-line';
+export type ShapeType = 'rect' | 'circle' | 'icon' | 'text' | 'network-line' | 'logo';
 export type ConnectorType = 'solid' | 'dashed';
 export type ArrowDirection = 'forward' | 'backward' | 'bidirectional' | 'none';
 export type AnchorSide = 'auto' | 'top' | 'bottom' | 'left' | 'right';
@@ -34,6 +34,7 @@ export interface DiagramElement {
   textPosition?: TextPosition;
   variant?: BoxVariant;
   iconId?: string;
+  logoId?: string;
   groupId?: string | null;
   stacked?: boolean;
   cornerRadius?: number;

@@ -8,7 +8,7 @@ const KONVA_PROPS = new Set([
   'hitStrokeWidth', 'strokeScaleEnabled', 'pointerLength', 'pointerWidth',
   'dashEnabled', 'offsetX', 'offsetY', 'fill', 'stroke', 'dash',
   'fontSize', 'align', 'padding', 'draggable', 'onDragEnd',
-  'onTransformEnd', 'onDblClick',
+  'onTransformEnd', 'onDblClick', 'enabledAnchors', 'keepRatio',
 ]);
 
 const filterProps = (props: Record<string, unknown>) => {

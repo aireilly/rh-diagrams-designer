@@ -3,6 +3,7 @@ import { useDiagram } from '../state/DiagramContext';
 import { COLORS, BOX_VARIANTS, CALLOUT_CIRCLE, GRID, NETWORK_COLORS } from '../constants';
 import { DiagramElement } from '../types';
 import { ICONS } from '../shapes/iconPaths';
+import { LOGOS, getLogo, logoUrl } from '../shapes/logoDefs';
 import './ComponentPanel.css';
 
 const ICON_CATEGORIES: { label: string; prefix: string }[] = [
@@ -88,6 +89,30 @@ function createIconElement(iconId: string, x: number, y: number): DiagramElement
   };
 }
 
+function createLogoElement(logoId: string, x: number, y: number): DiagramElement {
+  const logo = getLogo(logoId);
+  const width = logo?.defaultWidth ?? 160;
+  const height = logo ? Math.round((width * logo.naturalHeight) / logo.naturalWidth) : 40;
+  return {
+    id: generateId('logo'),
+    type: 'logo',
+    x,
+    y,
+    width,
+    height,
+    rotation: 0,
+    fill: '',
+    stroke: '',
+    strokeWidth: 0,
+    text: logo?.name ?? 'Logo',
+    fontSize: 11,
+    fontWeight: 'medium',
+    textColor: COLORS.GRAY_95,
+    logoId,
+    groupId: null,
+  };
+}
+
 function createTextElement(x: number, y: number): DiagramElement {
   return {
     id: generateId('text'),
@@ -152,6 +177,27 @@ function IconCategorySections({ onAddIcon }: { onAddIcon: (id: string) => void }
   );
 }
 
+function LogoSection({ onAddLogo }: { onAddLogo: (id: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <section className="panel-section">
+      <h4 className="section-title section-title-toggle" onClick={() => setIsOpen((v) => !v)}>
+        {isOpen ? '▾' : '▸'} Logos ({LOGOS.length})
+      </h4>
+      {isOpen && (
+        <div className="component-grid">
+          {LOGOS.map((logo) => (
+            <button key={logo.id} className="component-btn" onClick={() => onAddLogo(logo.id)} title={logo.name}>
+              <img className="preview-logo" src={logoUrl(logo)} alt={logo.name} />
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function ComponentPanel() {
   const { addElement, state, dispatch } = useDiagram();
 
@@ -178,6 +224,10 @@ export default function ComponentPanel() {
 
   const handleAddIcon = (iconId: string) => {
     addElement(createIconElement(iconId, dropX, dropY));
+  };
+
+  const handleAddLogo = (logoId: string) => {
+    addElement(createLogoElement(logoId, dropX, dropY));
   };
 
   const handleAddText = () => {
@@ -228,6 +278,8 @@ export default function ComponentPanel() {
       </section>
 
       <IconCategorySections onAddIcon={handleAddIcon} />
+
+      <LogoSection onAddLogo={handleAddLogo} />
 
       <section className="panel-section">
         <h4 className="section-title">Text</h4>

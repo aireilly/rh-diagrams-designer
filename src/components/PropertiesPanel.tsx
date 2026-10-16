@@ -290,7 +290,7 @@ export default function PropertiesPanel() {
       )}
 
       {/* Text */}
-      {element.type !== 'network-line' && (
+      {element.type !== 'network-line' && element.type !== 'logo' && (
       <div className="prop-group">
         <label className="prop-label">Text</label>
         <input

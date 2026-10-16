@@ -1,6 +1,7 @@
 import { DiagramState, DiagramElement, Connector, AnchorSide, TextPosition } from '../types';
 import { CANVAS, FONT_FAMILY, CALLOUT_CIRCLE, COLORS, ARROWHEAD } from '../constants';
 import { ICONS } from '../shapes/iconPaths';
+import { getLogo, getLogoHref } from '../shapes/logoDefs';
 import { isOnCanvas } from './elementBounds';
 
 function escapeXml(str: string): string {
@@ -237,6 +238,12 @@ function renderIcon(el: DiagramElement): string {
   return parts.join('\n');
 }
 
+function renderLogo(el: DiagramElement): string {
+  const logo = getLogo(el.logoId);
+  if (!logo) return '';
+  return `  <image x="${el.x}" y="${el.y}" width="${el.width}" height="${el.height}" href="${escapeXml(getLogoHref(logo))}" preserveAspectRatio="xMidYMid meet" />`;
+}
+
 function renderNetworkLine(el: DiagramElement): string {
   const isH = el.height === 0;
   const x2 = isH ? el.x + el.width : el.x;
@@ -256,6 +263,8 @@ function renderElement(el: DiagramElement): string {
       return renderIcon(el);
     case 'network-line':
       return renderNetworkLine(el);
+    case 'logo':
+      return renderLogo(el);
     default:
       return '';
   }
