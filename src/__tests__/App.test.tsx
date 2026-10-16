@@ -17,6 +17,15 @@ describe('App', () => {
     expect(screen.queryByText('Select')).not.toBeInTheDocument();
   });
 
+  it('renders Align Middle button between Align Top and Align Bottom', () => {
+    render(<App />);
+    const middle = screen.getByTitle('Align Middle');
+    expect(middle).toHaveTextContent('M');
+    expect(middle).toBeDisabled();
+    expect(screen.getByTitle('Align Top').nextElementSibling).toBe(middle);
+    expect(middle.nextElementSibling).toBe(screen.getByTitle('Align Bottom'));
+  });
+
   it('renders component panel sections', () => {
     render(<App />);
     expect(screen.getByText('Boxes')).toBeInTheDocument();

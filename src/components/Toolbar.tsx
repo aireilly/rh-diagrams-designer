@@ -131,6 +131,19 @@ export default function Toolbar({ onExport }: ToolbarProps) {
     }
   };
 
+  const handleAlignMiddle = () => {
+    const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
+    if (selected.length < 2) return;
+    lastAlignAxis.current = 'v';
+    const minY = Math.min(...selected.map((el) => el.y));
+    const maxBottom = Math.max(...selected.map((el) => el.y + el.height));
+    const midY = (minY + maxBottom) / 2;
+    for (const el of selected) {
+      const y = Math.round(midY - el.height / 2);
+      if (el.y !== y) updateElement(el.id, { y });
+    }
+  };
+
   const handleAlignBottom = () => {
     const selected = state.elements.filter((el) => state.selectedIds.includes(el.id));
     if (selected.length < 2) return;
@@ -262,6 +275,9 @@ export default function Toolbar({ onExport }: ToolbarProps) {
         </button>
         <button className="toolbar-btn" onClick={handleAlignTop} disabled={!canAlign} title="Align Top">
           T
+        </button>
+        <button className="toolbar-btn" onClick={handleAlignMiddle} disabled={!canAlign} title="Align Middle">
+          M
         </button>
         <button className="toolbar-btn" onClick={handleAlignBottom} disabled={!canAlign} title="Align Bottom">
           B
